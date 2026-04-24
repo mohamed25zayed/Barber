@@ -1,7 +1,7 @@
 // اسم الملف: shared.js
 // المسار: js/shared.js
 // الوظيفة: الدوال المشتركة (اللودر، الإشعارات، النوافذ، رفع الصور، التتبع، وفلترة الإشعارات الذكية، ومنع التكرار، والفتح الذكي لانستاباي)
-// 🛡️ تم التحديث: فلترة الإعلانات حسب دور المستخدم (Role-based Alerts) + نظام التثبيت PWA للآيفون والأندرويد + دالة منع تكرار الحسابات + الفتح الآمن لانستاباي
+// 🛡️ تم التحديث: إصلاح التكرار + دعم كامل لإشعارات Capacitor Native و Web PWA + دالة منع تكرار الحسابات + الفتح الآمن لانستاباي
 
 (() => {
     // 📦 متغيرات الحالة الداخلية (محمية)
@@ -23,7 +23,6 @@
         });
     };
 
-    // 🌟 ميزة جديدة: فحص ما إذا كان الحساب (رقم الهاتف) مسجل مسبقاً لمنع التكرار والعشوائية
     window.checkIfAccountExists = async function(phone) {
         try {
             if (typeof supabaseClient === 'undefined') return false;
@@ -122,7 +121,7 @@
     };
 
     // ==========================================
-    // 🖼️ 4. معالجة ورفع الصور (بحماية الحجم والنوع)
+    // 🖼️ 4. معالجة ورفع الصور 
     // ==========================================
     window.previewImage = function(input, previewId) {
         const preview = document.getElementById(previewId);
@@ -150,7 +149,7 @@
 
     window.uploadAvatar = async function(file, userId) {
         if (file.size > 5 * 1024 * 1024) {
-            window.showToast("حجم الصورة كبير جداً. الحد الأقصى المسموح هو 5 ميجابايت.");
+            window.showToast("حجم الصورة كبير جداً. الحد الأقصى هو 5 ميجابايت.");
             return null;
         }
 
@@ -197,7 +196,7 @@
     };
 
     // ==========================================
-    // 🗺️ 6. محرك حساب المسافات (مع حماية السيرفر OSRM)
+    // 🗺️ 6. محرك حساب المسافات
     // ==========================================
     window.calculateRoute = async function(lat1, lon1, lat2, lon2) {
         const controller = new AbortController();
@@ -218,7 +217,7 @@
             return { success: false };
         } catch (error) {
             clearTimeout(timeoutId);
-            console.warn("تخطى حساب المسار (السيرفر بطيء أو لا يوجد اتصال):", error);
+            console.warn("تخطى حساب المسار:", error);
             return { success: false }; 
         }
     };
@@ -239,30 +238,63 @@
     };
 
     // ==========================================
-    // 🔔 7. إعدادات الإشعارات (OneSignal & Service Worker)
+    // 🔔 7. إعدادات الإشعارات (Capacitor Native + Web PWA)
     // ==========================================
     window.OneSignalDeferred = window.OneSignalDeferred || [];
+
+    // دالة طلب الإذن الذكية والموحدة (للهاتف والويب)
+    window.requestAppNotificationPermission = async function(role = "user") {
+        try {
+            // 1. فحص ما إذا كنا داخل تطبيق Capacitor نيتف
+            const isCapacitorNative = window.Capacitor && window.Capacitor.isNativePlatform();
+            
+            if (isCapacitorNative && window.plugins && window.plugins.OneSignal) {
+                console.log("📱 طلب إشعارات لبيئة Capacitor Native...");
+                window.plugins.OneSignal.promptForPushNotificationsWithUserResponse(function(accepted) {
+                    console.log("حالة الإذن النيتف:", accepted);
+                    if(accepted) {
+                        window.plugins.OneSignal.sendTag("user_type", role);
+                    }
+                });
+            } 
+            // 2. إذا كنا على المتصفح (PWA)
+            else if (window.OneSignal) {
+                console.log("🌐 طلب إشعارات لبيئة Web/PWA...");
+                const permission = await OneSignal.Notifications.requestPermission();
+                console.log("حالة إذن الويب:", permission);
+                await OneSignal.User.addTag("user_type", role);
+            }
+        } catch (e) {
+            console.error("❌ فشل طلب إذن الإشعارات:", e);
+        }
+    };
+
     window.OneSignalDeferred.push(function(OneSignal) {
         OneSignal.Notifications.addEventListener('foregroundWillDisplay', function(event) {
             event.preventDefault(); 
             const notification = event.notification;
             
             if(typeof window.playSound === 'function') window.playSound('new');
-            
             window.showToast(`🔔 ${notification.title || 'إشعار'}: ${notification.body}`);
+        });
+
+        // متابعة حالة الاشتراك
+        OneSignal.User.PushSubscription.addEventListener('change', function(subscriptionState) {
+            console.log("حالة الاشتراك تغيرت:", subscriptionState);
         });
     });
 
-    if ('serviceWorker' in navigator) {
+    // تسجيل Service Worker مخصص للويب فقط (Capacitor لا يحتاجه للإشعارات النيتف)
+    if ('serviceWorker' in navigator && (!window.Capacitor || !window.Capacitor.isNativePlatform())) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('/OneSignalSDKWorker.js')
-            .then(reg => console.log('✅ تم تسجيل الـ Service Worker بنجاح!'))
+            .then(reg => console.log('✅ تم تسجيل الـ Service Worker للويب بنجاح!'))
             .catch(err => console.error('❌ خطأ في تسجيل الـ Service Worker!', err));
         });
     }
 
     // ==========================================
-    // 🚀 8. محرك إرسال الإشعارات التفاعلية (Native Push)
+    // 🚀 8. محرك إرسال الإشعارات التفاعلية (Native Push API)
     // ==========================================
     window.sendAppNotification = async function(targetUserId, title, message, targetUrl = "", type = "general", sendAfter = null) {
         const APP_ID = "b42c9e5d-cad6-470f-9eea-31f07b195168"; 
@@ -394,6 +426,9 @@
             const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', session.user.id).single();
             const userRole = profile ? profile.role : 'all';
 
+            // تفعيل الإشعارات تلقائياً بناءً على دور المستخدم
+            window.requestAppNotificationPermission(userRole);
+
             const { data: latestAlerts } = await supabaseClient
                 .from('global_alerts')
                 .select('*')
@@ -424,24 +459,23 @@
     // ==========================================
     let deferredPrompt;
 
-    // 1. التقاط حدث الأندرويد
     window.addEventListener('beforeinstallprompt', (e) => {
+        // إخفاء دعوة التثبيت إذا كنا نعمل داخل Capacitor Native
+        if (window.Capacitor && window.Capacitor.isNativePlatform()) return;
+        
         e.preventDefault();
         deferredPrompt = e;
-        // الانتظار 3 ثواني قبل عرض البانر لعدم إزعاج المستخدم
         setTimeout(() => {
             showAndroidInstallBanner();
         }, 3000);
     });
 
-    // 2. التحقق من الآيفون عند تحميل الصفحة
     document.addEventListener('DOMContentLoaded', () => {
-        // التأكد إن التطبيق مش متثبت أصلاً
+        if (window.Capacitor && window.Capacitor.isNativePlatform()) return;
+
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-        
         if (!isStandalone) {
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            
             if (isIOS) {
                 setTimeout(() => {
                     showIOSInstallBanner();
@@ -546,7 +580,7 @@
             banner.style.opacity = '0';
             setTimeout(() => banner.remove(), 300);
         }
-        localStorage.setItem('hide_install_banner', 'true'); // عشان ميظهرش تاني لو قفله
+        localStorage.setItem('hide_install_banner', 'true'); 
     };
 
     // ==========================================
@@ -559,18 +593,15 @@
         const isAndroid = /Android/.test(navigator.userAgent);
         
         if (isAndroid) {
-            // الطريقة الآمنة للأندرويد (Intent) - بتفتح التطبيق أو توديه للمتجر لو مش موجود
             window.location.href = "intent://#Intent;package=com.egyptianbanks.instapay;end";
         } else if (isIOS) {
-            // محاولة الفتح للآيفون
             window.location.href = "instapay://";
             setTimeout(() => {
                 window.showToast("إذا لم يفتح التطبيق، يرجى فتحه يدوياً من هاتفك.");
             }, 1500);
         } else {
-            // لو العميل فاتح من لاب توب أو كمبيوتر
             window.showToast("هذه الميزة تعمل على الهواتف المحمولة. يرجى فتح انستاباي يدوياً 📱");
         }
     };
 
-})();
+})(); // نهاية السكربت الآمنة
