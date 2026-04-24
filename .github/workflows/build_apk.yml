@@ -21,10 +21,11 @@ jobs:
           distribution: 'temurin'
 
       - name: Install Dependencies
-        run: npm install
+        run: |
+          npm install
+          npm install @capacitor/android@latest # دي اللي كانت ناقصة
 
-      # استخدام أمر sync بدلاً من copy لضمان إنشاء ملفات الـ Plugins
-      - name: Sync Web Assets & Plugins
+      - name: Sync Android
         run: |
           chmod +x ./node_modules/.bin/cap
           npx cap sync android
@@ -55,10 +56,12 @@ jobs:
           node-version: '22'
 
       - name: Install Dependencies
-        run: npm install
+        run: |
+          npm install
+          npm install @capacitor/ios@latest # دي اللي كانت ناقصة
       
       - name: Build iOS Project
         run: |
           chmod +x ./node_modules/.bin/cap
-          npx cap add ios || true  # لو المنصة موجودة هيكمل عادي
-          npx cap sync ios         # مزامنة وتحديث ملفات الأيفون
+          npx cap add ios || true
+          npx cap sync ios
