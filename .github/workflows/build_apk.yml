@@ -9,7 +9,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # تحديث نسخة Node لـ 22 عشان Capacitor يرضى يشتغل
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -24,10 +23,11 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Build Web Assets
+      # استخدام أمر sync بدلاً من copy لضمان إنشاء ملفات الـ Plugins
+      - name: Sync Web Assets & Plugins
         run: |
           chmod +x ./node_modules/.bin/cap
-          npx cap copy
+          npx cap sync android
 
       - name: Build Android (APK & AAB)
         run: |
@@ -60,4 +60,5 @@ jobs:
       - name: Build iOS Project
         run: |
           chmod +x ./node_modules/.bin/cap
-          npx cap copy ios
+          npx cap add ios || true  # لو المنصة موجودة هيكمل عادي
+          npx cap sync ios         # مزامنة وتحديث ملفات الأيفون
