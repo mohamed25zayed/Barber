@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>لوحة الإدارة | BarberHome</title>
+    
+    <meta name="description" content="تطبيق BarberHome - احجز أفضل كابتن حلاقة لزيارة منزلية أو احجز موعدك في أرقى الصالونات في مصر. تجربة حلاقة VIP بكل سهولة وسرعة.">
+    <meta name="keywords" content="حلاق منزلي, صالون حلاقة, حجز كوافير رجالي, تطبيق حلاقة, حلاق دليفري, BarberHome, أفضل حلاق في مصر">
+
+    <meta property="og:title" content="BarberHome | حلاقك الخاص في منزلك">
+    <meta property="og:description" content="احجز موعدك الآن مع أفضل الكباتن والصالونات.">
+    <meta property="og:image" content="https://yourdomain.vip/assets/cover-image.jpg"> <meta property="og:url" content="https://yourdomain.vip">
+    <meta property="og:type" content="website">
+    <link rel="icon" type="image/png" href="/assets/android/mipmap-hdpi/icon.png">
+    <link rel="manifest" href="/manifest.json">
+
+    <meta name="theme-color" content="#111827">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="بربر هوم">
+    <link rel="apple-touch-icon" href="/assets/barber.jpg">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="../css/style.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="h-screen flex overflow-hidden bg-gray-50 text-gray-900 selection:bg-amber-100 font-sans">
+    
+    <div id="global-loader" class="fixed inset-0 bg-white/90 z-[9999] hidden flex-col items-center justify-center backdrop-blur-sm transition-all duration-300">
+        <div class="relative w-20 h-20 mb-4">
+            <div class="absolute inset-0 border-4 border-gray-100 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-gray-900 rounded-full border-t-transparent animate-spin"></div>
+            <div class="absolute inset-0 flex items-center justify-center text-amber-500 text-xl animate-pulse">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+        </div>
+        <p class="font-black text-gray-800 text-sm tracking-wide">جاري مزامنة البيانات...</p>
+    </div>
+    
+    <div id="toast" class="fixed top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-5 py-4 rounded-2xl shadow-2xl opacity-0 pointer-events-none z-[9999] text-sm font-bold flex items-center gap-4 transform -translate-y-8 transition-all duration-500 w-[90%] max-w-sm border border-gray-700/50">
+        <div class="w-10 h-10 bg-amber-500/20 text-amber-500 rounded-full flex items-center justify-center shrink-0 shadow-inner animate-pulse">
+            <i class="fa-solid fa-bell"></i>
+        </div>
+        <span id="toast-msg" class="flex-1 text-right leading-relaxed">رسالة النظام</span>
+    </div>
+
+    <div id="admin-login-view" class="fixed inset-0 bg-gray-100 z-[999] flex flex-col items-center justify-center p-4 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMCwwLDAsMC4wNSkiLz48L3N2Zz4=')]">
+        <div class="floating-card p-8 md:p-10 w-full max-w-md text-center bg-white/95 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border border-white">
+            <div class="w-24 h-24 bg-gradient-to-br from-gray-900 to-gray-800 text-white rounded-3xl flex items-center justify-center text-4xl shadow-xl mx-auto mb-6 transform hover:rotate-6 transition-transform">
+                <i class="fa-solid fa-user-shield text-amber-500"></i>
+            </div>
+            <h1 class="text-3xl font-black text-gray-900 mb-2 tracking-tight">تسجيل دخول الإدارة</h1>
+            <p class="text-gray-500 text-xs mb-8 font-bold uppercase tracking-widest">Master Control Panel</p>
+
+            <div class="space-y-5 text-right">
+                <div>
+                    <label class="block text-[11px] font-black text-gray-600 mb-2 pl-2">رقم الهاتف أو البريد الإلكتروني</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fa-solid fa-phone text-gray-400"></i></div>
+                        <input type="text" id="admin-phone" placeholder="01xxxxxxxxx" class="premium-input text-left w-full pl-10 pr-4 py-4 border-2 border-gray-100 rounded-2xl focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all font-bold" dir="ltr" >
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-gray-600 mb-2 pl-2">كلمة المرور الإدارية</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fa-solid fa-lock text-gray-400"></i></div>
+                        <input type="password" id="admin-pass" placeholder="••••••••" class="premium-input text-left w-full pl-10 pr-4 py-4 border-2 border-gray-100 rounded-2xl focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 outline-none transition-all font-bold tracking-widest" dir="ltr" >
+                    </div>
+                </div>
+                <button onclick="adminLogin()" class="w-full bg-gray-900 text-white py-4 rounded-2xl font-black shadow-lg shadow-gray-900/30 hover:bg-black hover:-translate-y-1 active:translate-y-0 mt-4 transition-all flex items-center justify-center gap-3">
+                    دخول النظام <i class="fa-solid fa-arrow-left-long text-amber-500"></i>
+                </button>
+            </div>
+            <p id="login-error" class="text-red-500 bg-red-50 border border-red-100 p-3 rounded-xl text-xs mt-6 hidden font-bold animate-pulse">تأكد من صحة بيانات المدير!</p>
+        </div>
+    </div>
+
+    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity"></div>
+
+    <aside id="sidebar" class="fixed lg:relative inset-y-0 right-0 w-72 bg-white border-l border-gray-100 flex flex-col transform translate-x-full lg:translate-x-0 transition-transform duration-300 ease-out z-50 h-full hidden shadow-2xl lg:shadow-none">
+        <div class="p-8 border-b border-gray-50 shrink-0">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-gray-900 text-white rounded-2xl flex items-center justify-center text-xl shadow-md border border-gray-700">
+                    <i class="fa-solid fa-shield-halved text-amber-500"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black tracking-tight text-gray-900">بربر<span class="text-amber-600">هوم</span></h1>
+                    <p class="text-[9px] text-gray-400 font-black uppercase tracking-widest mt-0.5">Admin Control</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-1.5 custom-scrollbar">
+            <button onclick="switchAdminView('dashboard', this)" class="sidebar-item active w-full flex items-center gap-4 px-5 py-3.5 text-sm font-bold text-gray-900 rounded-2xl border-r-4 border-amber-600 bg-amber-50 transition-all shadow-sm" id="nav-dashboard">
+                <i class="fa-solid fa-chart-line w-5 text-amber-600 text-center"></i> الرئيسية
+            </button>
+            <button onclick="switchAdminView('salons', this)" class="sidebar-item w-full flex items-center gap-4 px-5 py-3.5 text-sm font-bold text-gray-500 rounded-2xl border-r-4 border-transparent hover:bg-gray-50 hover:text-gray-900 transition-all" id="nav-salons">
+                <i class="fa-solid fa-store w-5 text-center"></i> اعتماد الصالونات
+            </button>
+            <button onclick="switchAdminView('barbers', this)" class="sidebar-item w-full flex items-center gap-4 px-5 py-3.5 text-sm font-bold text-gray-500 rounded-2xl border-r-4 border-transparent hover:bg-gray-50 hover:text-gray-900 transition-all" id="nav-barbers">
+                <i class="fa-solid fa-users w-5 text-center"></i> إدارة الكباتن
+            </button>
+            <button onclick="switchAdminView('finance', this)" class="sidebar-item w-full flex items-center gap-4 px-5 py-3.5 text-sm font-bold text-gray-500 rounded-2xl border-r-4 border-transparent hover:bg-gray-50 hover:text-gray-900 transition-all" id="nav-finance">
+                <i class="fa-solid fa-money-bill-transfer w-5 text-center"></i> المالية والإعدادات
+            </button>
+            <button onclick="switchAdminView('services', this)" class="sidebar-item w-full flex items-center gap-4 px-5 py-3.5 text-sm font-bold text-gray-500 rounded-2xl border-r-4 border-transparent hover:bg-gray-50 hover:text-gray-900 transition-all" id="nav-services">
+                <i class="fa-solid fa-list-check w-5 text-center"></i> إدارة الخدمات
+            </button>
+            <button onclick="switchAdminView('orders', this)" class="sidebar-item w-full flex items-center gap-4 px-5 py-3.5 text-sm font-bold text-gray-500 rounded-2xl border-r-4 border-transparent hover:bg-gray-50 hover:text-gray-900 transition-all" id="nav-orders">
+                <i class="fa-solid fa-clock-rotate-left w-5 text-center"></i> سجل الطلبات
+            </button>
+            <button onclick="switchAdminView('support', this)" class="sidebar-item w-full flex items-center gap-4 px-5 py-3.5 text-sm font-bold text-gray-500 rounded-2xl border-r-4 border-transparent hover:bg-gray-50 hover:text-gray-900 transition-all" id="nav-support">
+                <i class="fa-solid fa-headset w-5 text-center text-red-500"></i> الدعم والشكاوى
+            </button>
+            <button onclick="switchAdminView('admins', this)" class="sidebar-item w-full flex items-center gap-4 px-5 py-3.5 text-sm font-bold text-gray-500 rounded-2xl border-r-4 border-transparent hover:bg-gray-50 hover:text-gray-900 transition-all" id="nav-admins">
+                <i class="fa-solid fa-user-shield w-5 text-center"></i> إدارة المديرين
+            </button>
+        </nav>
+
+        <div class="p-5 border-t border-gray-50 shrink-0 bg-white">
+            <button onclick="window.adminLogout()" class="w-full flex items-center justify-center gap-3 text-red-600 font-bold text-sm py-3.5 bg-red-50 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm active:scale-95 border border-red-100">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> تسجيل الخروج
+            </button>
+        </div>
+    </aside>
+
+    <main id="main-content" class="flex-1 overflow-y-auto bg-gray-50 h-full w-full hidden relative">
+        
+        <header class="flex justify-between items-center bg-white/80 backdrop-blur-md p-5 lg:p-8 border-b border-gray-100 sticky top-0 z-30 shadow-sm">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSidebar()" class="lg:hidden w-10 h-10 bg-gray-100 rounded-xl text-gray-700 flex items-center justify-center hover:bg-gray-200 transition-all active:scale-90">
+                    <i class="fa-solid fa-bars-staggered"></i>
+                </button>
+                <h2 id="page-title" class="text-xl lg:text-2xl font-black text-gray-900 tracking-tight">لوحة القيادة</h2>
+            </div>
+            <div class="bg-green-50 px-3 py-1.5 rounded-lg border border-green-100 text-[10px] lg:text-xs font-black text-green-600 flex items-center gap-2 shadow-sm">
+                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div> مباشر
+            </div>
+        </header>
+
+        <div class="p-5 lg:p-8 max-w-[1600px] mx-auto pb-24">
+            
+            <div id="view-dashboard" class="view active space-y-8">
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 lg:gap-6">
+                    <div class="floating-card p-6 bg-white border border-gray-100 rounded-3xl hover:-translate-y-1 transition-transform">
+                        <div class="flex justify-between items-start mb-4">
+                            <p class="text-[11px] text-gray-400 font-black uppercase tracking-wider">أرباح المنصة المتاحة</p>
+                            <div class="bg-green-50 w-10 h-10 flex items-center justify-center rounded-xl text-green-600 text-lg"><i class="fa-solid fa-coins"></i></div>
+                        </div>
+                        <h3 class="text-3xl font-black text-gray-900" id="stat-earnings">0 <span class="text-xs font-bold text-gray-400">ج.م</span></h3>
+                    </div>
+                    <div class="floating-card p-6 bg-white border border-gray-100 rounded-3xl hover:-translate-y-1 transition-transform">
+                        <div class="flex justify-between items-start mb-4">
+                            <p class="text-[11px] text-gray-400 font-black uppercase tracking-wider">الطلبات المكتملة</p>
+                            <div class="bg-blue-50 w-10 h-10 flex items-center justify-center rounded-xl text-blue-600 text-lg"><i class="fa-solid fa-flag-checkered"></i></div>
+                        </div>
+                        <h3 class="text-3xl font-black text-gray-900" id="stat-orders">0 <span class="text-xs font-bold text-gray-400">أوردر</span></h3>
+                    </div>
+                    <div class="floating-card p-6 bg-white border border-gray-100 rounded-3xl hover:-translate-y-1 transition-transform">
+                        <div class="flex justify-between items-start mb-4">
+                            <p class="text-[11px] text-gray-400 font-black uppercase tracking-wider">الكباتن النشطين</p>
+                            <div class="bg-amber-50 w-10 h-10 flex items-center justify-center rounded-xl text-amber-600 text-lg"><i class="fa-solid fa-user-tie"></i></div>
+                        </div>
+                        <h3 class="text-3xl font-black text-gray-900" id="stat-barbers">0 <span class="text-xs font-bold text-gray-400">كابتن</span></h3>
+                    </div>
+                    <div class="floating-card p-6 bg-white border-2 border-red-50 rounded-3xl hover:-translate-y-1 transition-transform shadow-red-100/50">
+                        <div class="flex justify-between items-start mb-4">
+                            <p class="text-[11px] text-red-500 font-black uppercase tracking-wider">مراجعة وانضمام</p>
+                            <div class="bg-red-50 w-10 h-10 flex items-center justify-center rounded-xl text-red-500 text-lg"><i class="fa-solid fa-user-clock"></i></div>
+                        </div>
+                        <h3 class="text-3xl font-black text-red-600" id="stat-pending">0 <span class="text-xs font-bold text-red-400">طلبات</span></h3>
+                    </div>
+                </div>
+
+                <div class="flex justify-end mt-4">
+                    <button onclick="openNotificationModal()" class="bg-gradient-to-r from-amber-500 to-amber-600 text-gray-900 px-6 py-3 rounded-2xl font-black shadow-lg shadow-amber-500/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-bullhorn"></i> إرسال إشعار عام للجميع
+                    </button>
+                </div>
+                
+                <div id="admin-pending-payments-section" class="hidden mt-8">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-8 h-8 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center animate-bounce shadow-sm">
+                            <i class="fa-solid fa-bell"></i>
+                        </div>
+                        <h3 class="font-black text-lg text-gray-900">مدفوعات عملاء بانتظار التأكيد (InstaPay)</h3>
+                    </div>
+                    <div id="admin-pending-payments-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+                </div>
+            </div>
+
+            <div id="view-support" class="view hidden space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="font-black text-lg text-gray-900 flex items-center gap-2"><i class="fa-solid fa-headset text-red-500"></i> شكاوى ومقترحات العملاء</h3>
+                    <div class="flex flex-wrap gap-2 bg-gray-50 p-1.5 rounded-xl border border-gray-200">
+                        <button onclick="loadSupportTickets('pending')" id="btn-filter-pending" class="bg-gray-900 text-white px-5 py-2 rounded-lg text-xs font-bold transition-all shadow-sm">قيد المراجعة</button>
+                        <button onclick="loadSupportTickets('resolved')" id="btn-filter-resolved" class="text-gray-600 hover:bg-gray-200 hover:text-gray-900 px-5 py-2 rounded-lg text-xs font-bold transition-all">تم الحل</button>
+                    </div>
+                </div>
+                <div id="support-tickets-container" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5"></div>
+            </div>
+
+            <div id="view-salons" class="view hidden space-y-6">
+                <div class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-right border-collapse whitespace-nowrap">
+                            <thead>
+                                <tr class="bg-gray-900 text-white text-[11px] uppercase tracking-wider font-black">
+                                    <th class="p-5">الصالون والمالك</th>
+                                    <th class="p-5">العنوان</th>
+                                    <th class="p-5 text-center">الحالة</th>
+                                    <th class="p-5 text-center">الإجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-salons-list" class="divide-y divide-gray-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-barbers" class="view hidden space-y-8">
+                <div>
+                    <h3 class="font-black text-lg text-gray-900 mb-4 flex items-center gap-2"><i class="fa-solid fa-user-plus text-amber-500"></i> طلبات الانضمام الجديدة</h3>
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-5" id="pending-barbers-container"></div>
+                </div>
+
+                <div>
+                    <h3 class="font-black text-lg text-gray-900 mb-4 flex items-center gap-2"><i class="fa-solid fa-users-gear text-blue-500"></i> الكباتن المعتمدين</h3>
+                    <div class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="overflow-x-auto custom-scrollbar">
+                            <table class="w-full text-right border-collapse whitespace-nowrap">
+                                <thead>
+                                    <tr class="bg-gray-900 text-white text-[11px] uppercase tracking-wider font-black">
+                                        <th class="p-5">الكابتن</th>
+                                        <th class="p-5">الهاتف</th>
+                                        <th class="p-5 text-center">التحكم</th>
+                                        <th class="p-5 text-center">التقارير</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="active-barbers-body" class="divide-y divide-gray-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-finance" class="view hidden space-y-8">
+                <!-- 🚀 إعدادات النظام والعمولات -->
+                <div class="bg-gray-900 p-6 lg:p-8 rounded-[2.5rem] shadow-xl border border-gray-800 relative overflow-hidden text-white mb-8">
+                    <div class="absolute top-0 left-0 w-32 h-32 bg-amber-500/10 rounded-br-[100%] pointer-events-none"></div>
+                    <h3 class="text-xl font-black mb-6 flex items-center gap-3 relative z-10"><i class="fa-solid fa-sliders text-amber-500"></i> إعدادات المنصة والعمولات</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+                        <div class="bg-gray-800 p-4 rounded-2xl border border-gray-700">
+                            <label class="block text-xs font-bold text-gray-400 mb-2">عمولة المنصة من الكباتن (%)</label>
+                            <input type="number" id="setting-barber-comm" class="w-full bg-gray-900 border border-gray-600 rounded-xl px-4 py-3 text-white font-black text-center focus:border-amber-500 outline-none" placeholder="15">
+                        </div>
+                        <div class="bg-gray-800 p-4 rounded-2xl border border-gray-700">
+                            <label class="block text-xs font-bold text-gray-400 mb-2">عمولة المنصة من الصالونات (%)</label>
+                            <input type="number" id="setting-salon-comm" class="w-full bg-gray-900 border border-gray-600 rounded-xl px-4 py-3 text-white font-black text-center focus:border-amber-500 outline-none" placeholder="20">
+                        </div>
+                        <div class="bg-gray-800 p-4 rounded-2xl border border-gray-700 flex flex-col justify-center items-center">
+                            <label class="block text-xs font-bold text-gray-400 mb-3">حجز الصالونات (متاح للعملاء؟)</label>
+                            <label class="relative inline-flex items-center cursor-pointer active:scale-110 transition-transform">
+                                <input type="checkbox" id="setting-salon-active" class="sr-only peer" onchange="document.getElementById('salon-status-text').innerText = this.checked ? 'متاح الآن' : 'مغلق (قريباً)'; document.getElementById('salon-status-text').className = this.checked ? 'text-[10px] text-green-400 mt-2 font-bold' : 'text-[10px] text-red-400 mt-2 font-bold';">
+                                <div class="w-14 h-7 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[-100%] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-amber-500 shadow-inner"></div>
+                            </label>
+                            <span class="text-[10px] text-gray-400 mt-2 font-bold" id="salon-status-text">جاري التحميل...</span>
+                        </div>
+                    </div>
+                    <button onclick="saveAppSettings()" class="w-full mt-6 bg-amber-500 text-gray-900 p-4 rounded-xl font-black shadow-lg hover:bg-amber-400 transition-all active:scale-95 flex items-center justify-center gap-2 relative z-10">
+                        حفظ الإعدادات <i class="fa-solid fa-floppy-disk"></i>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 lg:p-8 rounded-[2.5rem] shadow-sm border border-gray-100 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-bl-[100%] -z-0"></div>
+                        <h3 class="text-xl font-black text-gray-900 mb-6 flex items-center gap-3 relative z-10"><i class="fa-solid fa-money-bill-transfer text-amber-500 bg-white p-2 rounded-xl shadow-sm"></i> طلبات سحب الأرباح</h3>
+                        <div id="admin-payouts-list" class="space-y-4 relative z-10"></div>
+                    </div>
+                    <div class="bg-white p-6 lg:p-8 rounded-[2.5rem] shadow-sm border border-gray-100 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-green-50 rounded-bl-[100%] -z-0"></div>
+                        <h3 class="text-xl font-black text-gray-900 mb-6 flex items-center gap-3 relative z-10"><i class="fa-solid fa-building-circle-check text-green-500 bg-white p-2 rounded-xl shadow-sm"></i> تأكيد سداد المديونيات</h3>
+                        <div id="admin-debts-list" class="space-y-4 relative z-10"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-orders" class="view hidden space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="font-black text-lg text-gray-900 flex items-center gap-2"><i class="fa-solid fa-satellite-dish text-amber-500 animate-pulse"></i> الرادار المباشر</h3>
+                    <div class="flex flex-wrap gap-2 bg-gray-50 p-1.5 rounded-xl border border-gray-200">
+                        <button onclick="filterOrders('all', this)" class="order-filter-btn active bg-gray-900 text-white px-5 py-2 rounded-lg text-xs font-bold transition-all shadow-sm">الكل</button>
+                        <button onclick="filterOrders('completed', this)" class="order-filter-btn text-gray-600 hover:bg-gray-200 hover:text-gray-900 px-5 py-2 rounded-lg text-xs font-bold transition-all">المكتملة</button>
+                        <button onclick="filterOrders('cancelled', this)" class="order-filter-btn text-gray-600 hover:bg-gray-200 hover:text-gray-900 px-5 py-2 rounded-lg text-xs font-bold transition-all">الملغية</button>
+                    </div>
+                </div>
+                <div class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-right border-collapse whitespace-nowrap">
+                            <thead>
+                                <tr class="bg-gray-900 text-white text-[11px] uppercase tracking-wider font-black">
+                                    <th class="p-5">الطلب / التاريخ</th>
+                                    <th class="p-5">العميل</th>
+                                    <th class="p-5">الكابتن (النوع)</th>
+                                    <th class="p-5">الخدمات</th>
+                                    <th class="p-5 text-center">الإجمالي (ج.م)</th>
+                                    <th class="p-5 text-center">العمولة</th>
+                                    <th class="p-5 text-center">الحالة والإجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-table-body" class="divide-y divide-gray-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-services" class="view hidden space-y-6">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-black text-lg text-gray-900">خدمات وعروض المنصة</h3>
+                    <button onclick="openModal('service-modal')" class="bg-gray-900 text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg shadow-gray-900/20 hover:bg-black hover:-translate-y-0.5 active:translate-y-0 transition-all flex gap-2 items-center">
+                        <i class="fa-solid fa-plus-circle text-amber-500"></i> إضافة جديدة
+                    </button>
+                </div>
+                <div class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-right border-collapse whitespace-nowrap">
+                            <thead>
+                                <tr class="bg-gray-900 text-white text-[11px] uppercase tracking-wider font-black">
+                                    <th class="p-5">اسم الخدمة/العرض</th>
+                                    <th class="p-5">النوع</th>
+                                    <th class="p-5">السعر</th>
+                                    <th class="p-5 text-center">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="services-table-body" class="divide-y divide-gray-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-admins" class="view hidden space-y-6">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-black text-lg text-gray-900">صلاحيات النظام</h3>
+                    <button onclick="openModal('add-admin-modal')" class="bg-gray-900 text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg shadow-gray-900/20 hover:bg-black hover:-translate-y-0.5 active:translate-y-0 transition-all flex gap-2 items-center">
+                        <i class="fa-solid fa-user-plus text-amber-500"></i> إضافة مسؤول
+                    </button>
+                </div>
+                <div class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-right border-collapse whitespace-nowrap">
+                            <thead>
+                                <tr class="bg-gray-900 text-white text-[11px] uppercase tracking-wider font-black">
+                                    <th class="p-5">الاسم</th>
+                                    <th class="p-5">رقم الهاتف</th>
+                                    <th class="p-5 text-center">الصلاحية</th>
+                                    <th class="p-5 text-center">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admins-table-body" class="divide-y divide-gray-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div> 
+    </main>
+
+    <div id="service-modal" class="fixed inset-0 bg-gray-900/60 z-[6000] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-[2rem] p-6 sm:p-8 w-full max-w-md relative overflow-y-auto max-h-[90vh] shadow-2xl modal-content transform translate-y-8 opacity-0 transition-all duration-300 border border-gray-100 custom-scrollbar">
+            <button onclick="closeModal('service-modal')" class="absolute top-5 left-5 w-8 h-8 bg-gray-100 rounded-full text-gray-500 hover:text-red-500 hover:bg-red-50 transition-colors flex items-center justify-center"><i class="fa-solid fa-xmark text-sm"></i></button>
+            <h3 id="srv-modal-title" class="font-black text-xl mb-6 text-gray-900">إضافة خدمة / عرض</h3>
+            <div class="space-y-5">
+                <div class="grid grid-cols-2 gap-3 bg-gray-50 p-1.5 rounded-2xl border border-gray-200">
+                    <label class="cursor-pointer">
+                        <input type="radio" name="srv_type" id="srv-input-basic" value="basic" class="hidden peer" checked onchange="toggleServiceFields()">
+                        <div class="p-3 text-center rounded-xl peer-checked:bg-white peer-checked:shadow-sm text-xs font-black transition-all text-gray-500 peer-checked:text-gray-900">خدمة أساسية</div>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="srv_type" id="srv-input-offer" value="offer" class="hidden peer" onchange="toggleServiceFields()">
+                        <div class="p-3 text-center rounded-xl peer-checked:bg-amber-50 peer-checked:shadow-sm text-xs font-black transition-all text-gray-500 peer-checked:text-amber-700">عرض خاص 🔥</div>
+                    </label>
+                </div>
+                <div><label class="block text-[11px] font-black text-gray-600 mb-1.5 pl-2">اسم الخدمة</label><input type="text" id="srv-input-name" class="premium-input bg-gray-50 border-gray-200" placeholder="مثال: حلاقة ذقن"></div>
+                
+                <div id="offer-extra-fields" class="hidden space-y-4 bg-amber-50/50 p-4 rounded-2xl border border-amber-100/50 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-amber-100/50 rounded-bl-[100%]"></div>
+                    <div class="relative z-10">
+                        <div><label class="block text-[11px] font-black text-amber-800 mb-1.5 pl-2">وصف العرض</label><textarea id="srv-desc" class="premium-input h-20 bg-white border-amber-100 resize-none" placeholder="ماذا يشمل العرض؟"></textarea></div>
+                        <div class="grid grid-cols-2 gap-3 mt-4">
+                            <div><label class="block text-[11px] font-black text-amber-800 mb-1.5 pl-2">السعر الأصلي</label><input type="number" id="srv-original-price" class="premium-input bg-white border-amber-100 text-center" placeholder="0"></div>
+                            <div><label class="block text-[11px] font-black text-amber-800 mb-1.5 pl-2">تاريخ الانتهاء</label><input type="date" id="srv-end-date" class="premium-input bg-white border-amber-100 text-[10px]"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div><label class="block text-[11px] font-black text-gray-600 mb-1.5 pl-2">السعر المطلوب (ج.م)</label><input type="number" id="srv-input-price" class="premium-input bg-gray-50 border-gray-200 text-center text-xl font-black text-amber-600" placeholder="0"></div>
+                <button onclick="saveServiceAction()" class="w-full bg-gray-900 text-white p-4 rounded-2xl font-black shadow-lg hover:bg-black active:scale-[0.98] transition-all mt-2">حفظ ونشر الخدمة</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="add-admin-modal" class="fixed inset-0 bg-gray-900/60 z-[6000] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-[2rem] p-6 sm:p-8 w-full max-w-md relative shadow-2xl modal-content transform translate-y-8 opacity-0 transition-all duration-300 border border-gray-100">
+            <button onclick="closeModal('add-admin-modal')" class="absolute top-5 left-5 w-8 h-8 bg-gray-100 rounded-full text-gray-500 hover:text-red-500 hover:bg-red-50 transition-colors flex items-center justify-center"><i class="fa-solid fa-xmark text-sm"></i></button>
+            <h3 class="font-black text-xl mb-6 text-gray-900">إضافة مسؤول جديد</h3>
+            <div class="space-y-4">
+                <div><label class="block text-[11px] font-black text-gray-600 mb-1.5 pl-2">الاسم بالكامل</label><input type="text" id="admin-new-name" placeholder="الاسم" class="premium-input bg-gray-50 border-gray-200"></div>
+                <div><label class="block text-[11px] font-black text-gray-600 mb-1.5 pl-2">رقم الهاتف المسجل بالتطبيق</label><input type="tel" id="admin-new-phone" placeholder="01xxxxxxxxx" class="premium-input bg-gray-50 border-gray-200 text-left font-bold" dir="ltr"></div>
+                <div>
+                    <label class="block text-[11px] font-black text-gray-600 mb-1.5 pl-2">تحديد الصلاحيات</label>
+                    <select id="admin-new-role" class="premium-input bg-gray-50 border-gray-200 font-bold text-sm">
+                        <option value="full">تحكم كامل (إدارة، كباتن، ماليات)</option>
+                        <option value="limited">إدارة محدودة (طلبات وكباتن فقط)</option>
+                    </select>
+                </div>
+                <button onclick="saveAdminAction()" class="w-full bg-gray-900 text-white p-4 rounded-2xl font-black shadow-lg hover:bg-black active:scale-[0.98] transition-all mt-4">إضافة المسؤول</button>
+            </div>
+        </div>
+    </div>
+<div id="admin-notification-modal" class="fixed inset-0 bg-gray-900/70 z-[6000] hidden items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm transition-opacity duration-300 pb-safe">
+        <div class="modal-content bg-white w-full max-w-md rounded-t-[2rem] sm:rounded-3xl p-6 sm:p-8 transform transition-transform translate-y-full duration-300 shadow-2xl border border-gray-100">
+            <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4 relative">
+                <h3 class="font-black text-xl text-gray-900 flex items-center gap-2"><i class="fa-solid fa-paper-plane text-amber-500"></i> إرسال إشعار</h3>
+                <button onclick="closeModal('admin-notification-modal')" class="w-10 h-10 bg-gray-50 rounded-full text-gray-500 hover:bg-red-50 hover:text-red-500 transition-colors flex items-center justify-center active:scale-90"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-600 mb-1.5 pl-1">الفئة المستهدفة</label>
+                        <select id="notif-target-role" class="premium-input bg-gray-50 border-gray-200 text-xs py-3 px-2">
+                            <option value="all">الجميع</option>
+                            <option value="customer">العملاء فقط</option>
+                            <option value="barber">الكباتن فقط</option>
+                            <option value="salon_admin">الصالونات فقط</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-600 mb-1.5 pl-1">نوع الإشعار</label>
+                        <select id="notif-alert-type" class="premium-input bg-gray-50 border-gray-200 text-xs py-3 px-2">
+                            <option value="info">إعلان / تنبيه 📢</option>
+                            <option value="reward">مكافأة / عرض 🎁</option>
+                            <option value="warning">تحذير هام ⚠️</option>
+                            <option value="success">إنجاز / نجاح ✅</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-gray-600 mb-1.5 pl-2">عنوان الإشعار</label>
+                    <input type="text" id="notif-title" class="premium-input bg-gray-50 border-gray-200" placeholder="اكتب العنوان هنا...">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-gray-600 mb-1.5 pl-2">رسالة الإشعار</label>
+                    <textarea id="notif-message" class="premium-input h-24 bg-gray-50 border-gray-200 resize-none text-sm leading-relaxed" placeholder="التفاصيل..."></textarea>
+                </div>
+                <button onclick="sendGeneralNotification()" class="w-full bg-gray-900 text-white p-4 rounded-2xl font-black shadow-lg hover:bg-black active:scale-[0.98] transition-all mt-2 flex items-center justify-center gap-2">
+                    نشر الإشعار الآن <i class="fa-solid fa-satellite-dish text-amber-500 animate-pulse"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="salon-details-modal" class="fixed inset-0 bg-gray-900/60 z-[6000] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden flex flex-col shadow-2xl modal-content transform translate-y-8 opacity-0 transition-all duration-300 border border-gray-100">
+            <div class="p-6 bg-gray-900 text-white flex justify-between items-center shrink-0 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-32 h-32 bg-white/5 rounded-br-[100%] pointer-events-none"></div>
+                <div class="relative z-10">
+                    <h3 class="font-black text-xl flex items-center gap-2"><i class="fa-solid fa-chart-pie text-purple-500"></i> التقرير المالي الشامل</h3>
+                    <p class="text-[10px] text-gray-400 mt-1 uppercase font-black tracking-widest" id="details-salon-name"></p>
+                </div>
+                <button onclick="closeModal('salon-details-modal')" class="w-10 h-10 bg-white/10 rounded-full hover:bg-white/20 transition-all flex items-center justify-center text-sm relative z-10"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-6 bg-gray-50 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 text-center hover:border-gray-200 transition-colors">
+                        <div class="w-8 h-8 mx-auto bg-gray-50 text-gray-400 rounded-full flex items-center justify-center mb-2"><i class="fa-solid fa-wallet text-sm"></i></div>
+                        <p class="text-[10px] text-gray-500 font-black mb-1">أرباح الصالون المتاحة</p>
+                        <h4 class="text-xl md:text-2xl font-black text-gray-900" id="salon-modal-balance">0 <span class="text-[10px] font-bold text-gray-400">ج.م</span></h4>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-red-50 text-center hover:border-red-100 transition-colors">
+                        <div class="w-8 h-8 mx-auto bg-red-50 text-red-400 rounded-full flex items-center justify-center mb-2"><i class="fa-solid fa-file-invoice-dollar text-sm"></i></div>
+                        <p class="text-[10px] text-red-500 font-black mb-1">عمولة المنصة المطلوبة</p>
+                        <h4 class="text-xl md:text-2xl font-black text-red-600" id="salon-modal-debt">0 <span class="text-[10px] font-bold text-red-400">ج.م</span></h4>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 text-center hover:border-gray-200 transition-colors">
+                        <p class="text-[10px] text-gray-500 font-black mb-1">الطلبات المكتملة</p>
+                        <h4 class="text-xl md:text-2xl font-black text-blue-600" id="salon-modal-orders">0</h4>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 text-center hover:border-gray-200 transition-colors">
+                        <p class="text-[10px] text-gray-500 font-black mb-1">إجمالي المبيعات المحققة</p>
+                        <h4 class="text-xl md:text-2xl font-black text-green-600" id="salon-modal-revenue">0 <span class="text-[10px] font-bold text-green-400">ج.م</span></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="barber-history-modal" class="fixed inset-0 bg-gray-900/60 z-[6000] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white w-full max-w-2xl rounded-[2.5rem] overflow-hidden flex flex-col h-[85vh] shadow-2xl modal-content transform translate-y-8 opacity-0 transition-all duration-300 border border-gray-100">
+            <div class="p-6 bg-gray-900 text-white flex justify-between items-center shrink-0 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-bl-[100%] pointer-events-none"></div>
+                <div class="relative z-10">
+                    <h3 class="font-black text-xl flex items-center gap-2"><i class="fa-solid fa-file-invoice-dollar text-amber-500"></i> كشف الحساب والعمليات</h3>
+                    <p class="text-[10px] text-gray-400 mt-1 uppercase font-black tracking-widest" id="history-barber-name"></p>
+                </div>
+                <button onclick="closeModal('barber-history-modal')" class="w-10 h-10 bg-white/10 rounded-full hover:bg-white/20 transition-all flex items-center justify-center text-sm relative z-10"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="p-5 bg-gray-50 grid grid-cols-2 gap-4 shrink-0 border-b border-gray-100 shadow-sm relative z-10">
+                <div class="bg-white p-4 rounded-2xl shadow-sm text-center border border-gray-100">
+                    <p class="text-[10px] text-gray-500 font-black mb-1">أرباح الكابتن المتاحة بالمحفظة</p>
+                    <h4 class="text-2xl font-black text-gray-900" id="barber-modal-balance">0 <span class="text-[10px] font-bold text-gray-400">ج.م</span></h4>
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow-sm text-center border border-red-50">
+                    <p class="text-[10px] text-red-500 font-black mb-1">المديونية المستحقة للمنصة</p>
+                    <h4 class="text-2xl font-black text-red-600" id="barber-modal-debt">0 <span class="text-[10px] font-bold text-red-400">ج.م</span></h4>
+                </div>
+            </div>
+            
+            <div class="p-5 overflow-y-auto space-y-4 flex-1 bg-white custom-scrollbar" id="admin-barber-history-list">
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/supabase-client.js"></script>
+    <script src="../js/shared.js"></script>
+    <script src="../js/admin.js"></script>
+    
+    <script>
+        function filterOrders(status, btnElement) {
+            document.querySelectorAll('.order-filter-btn').forEach(btn => {
+                btn.className = "order-filter-btn text-gray-600 hover:bg-gray-200 hover:text-gray-900 px-5 py-2 rounded-lg text-xs font-bold transition-all";
+            });
+            btnElement.className = "order-filter-btn active bg-gray-900 text-white px-5 py-2 rounded-lg text-xs font-bold transition-all shadow-sm";
+
+            const rows = document.querySelectorAll('#orders-table-body tr');
+            rows.forEach(row => {
+                if (status === 'all') {
+                    row.style.display = '';
+                } else if (status === 'completed') {
+                    row.style.display = row.innerText.includes('مكتمل') ? '' : 'none';
+                } else if (status === 'cancelled') {
+                    row.style.display = row.innerText.includes('ملغي') ? '' : 'none';
+                }
+            });
+        }
+    </script>
+    
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+          appId: "b42c9e5d-cad6-470f-9eea-31f07b195168",
+          notifyButton: {
+            enable: true,
+          }
+        });
+      });
+    </script>
+    
+    <audio id="sound-new-order" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto"></audio>
+    <audio id="sound-payment" src="https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3" preload="auto"></audio>
+</body>
+</html>

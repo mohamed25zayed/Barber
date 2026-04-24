@@ -1,0 +1,56 @@
+{
+  "id": "barberhome-app",
+  "name": "BarberHome - بربر هوم",
+  "short_name": "بربر هوم",
+  "description": "حلاقك المفضل في منزلك",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f59e0b",
+  "orientation": "portrait",
+  "categories": ["lifestyle", "business"],
+  "icons": [
+    {
+      "src": "./assets/192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./assets/512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "حجز زيارة منزلية",
+      "short_name": "حجز منزلي",
+      "description": "اطلب كابتن يجيلك لحد البيت",
+      "url": "/pages/customer.html",
+      "icons": [
+        {
+          "src": "./assets/192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "الذهاب لصالون",
+      "short_name": "حجز صالون",
+      "description": "احجز موعد في صالونك المفضل",
+      "url": "/pages/customer.html",
+      "icons": [
+        {
+          "src": "./assets/192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}

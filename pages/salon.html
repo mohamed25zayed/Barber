@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>إدارة الصالون | BarberHome</title>
+    <meta name="description" content="تطبيق BarberHome - احجز أفضل كابتن حلاقة لزيارة منزلية أو احجز موعدك في أرقى الصالونات في مصر. تجربة حلاقة VIP بكل سهولة وسرعة.">
+<meta name="keywords" content="حلاق منزلي, صالون حلاقة, حجز كوافير رجالي, تطبيق حلاقة, حلاق دليفري, BarberHome, أفضل حلاق في مصر">
+
+<meta property="og:title" content="BarberHome | حلاقك الخاص في منزلك">
+<meta property="og:description" content="احجز موعدك الآن مع أفضل الكباتن والصالونات.">
+<meta property="og:image" content="https://yourdomain.vip/assets/cover-image.jpg"> <meta property="og:url" content="https://yourdomain.vip">
+<meta property="og:type" content="website">
+    <link rel="icon" type="image/png" href="/assets/android/mipmap-hdpi/icon.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#ffffff"> 
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="بربر هوم">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="../css/style.css" rel="stylesheet">
+    
+    <style>
+        /* تحسين مظهر شريط التمرير */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
+        
+        .premium-input {
+            width: 100%;
+            padding: 16px;
+            background: #f9fafb;
+            border: 2px solid #f3f4f6;
+            border-radius: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: bold;
+            color: #111827;
+        }
+        .premium-input:focus {
+            border-color: #a855f7;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.1);
+        }
+
+        /* أنيميشن لظهور التاجز والنوافذ بنعومة */
+        @keyframes scaleIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans selection:bg-purple-100 pb-safe">
+    
+    <!-- اللودر العام -->
+    <div id="global-loader" class="fixed inset-0 bg-white/90 z-[9999] hidden flex-col items-center justify-center backdrop-blur-md transition-all duration-300">
+        <div class="relative w-20 h-20 flex items-center justify-center mb-4">
+            <div class="absolute inset-0 border-4 border-gray-100 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-purple-600 rounded-full border-t-transparent animate-spin"></div>
+            <i class="fa-solid fa-shop text-gray-900 text-2xl animate-pulse"></i>
+        </div>
+        <p class="font-black text-gray-900 text-sm tracking-widest uppercase">لحظات...</p>
+    </div>
+    
+    <!-- نظام الرسائل والإشعارات الداخلية -->
+    <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-5 py-4 rounded-2xl shadow-2xl opacity-0 pointer-events-none transition-all duration-400 z-[8000] text-sm font-bold flex items-center gap-3 transform -translate-y-4 w-max max-w-[90%] border border-gray-700">
+        <div class="w-8 h-8 bg-purple-500/20 text-purple-400 rounded-full flex items-center justify-center shrink-0 shadow-inner animate-pulse">
+            <i class="fa-solid fa-bell"></i>
+        </div>
+        <span id="toast-msg" class="leading-relaxed">رسالة النظام</span>
+    </div>
+
+    <!-- الشريط العلوي -->
+    <header class="px-5 py-4 flex justify-between items-center bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm border-b border-gray-100">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 bg-gradient-to-br from-purple-600 to-purple-800 text-white rounded-[1rem] flex items-center justify-center text-xl shadow-md border border-purple-900/20">
+                <i class="fa-solid fa-shop"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-black tracking-tight text-gray-900">إدارة <span class="text-purple-600">الصالون</span></h1>
+                <p id="header-salon-name" class="text-[10px] text-gray-500 font-bold mt-0.5 tracking-wide">جاري التحميل...</p>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="logout()" class="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center hover:bg-red-100 hover:text-red-600 transition text-red-500 shadow-sm active:scale-95" title="تسجيل خروج">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="p-4 max-w-md mx-auto relative pb-28 min-h-screen">
+        
+        <!-- 1. لوحة الطلبات المباشرة -->
+        <section id="salon-dash" class="view active space-y-6">
+            <div class="flex justify-between items-center border-b border-gray-100 pb-4 mt-2">
+                <h3 class="font-black text-2xl text-gray-900 flex items-center gap-2"><i class="fa-solid fa-bell text-purple-500"></i> الطلبات المباشرة</h3>
+                <span class="bg-green-50 text-green-600 text-[10px] px-3 py-1.5 rounded-full flex items-center gap-1.5 font-black border border-green-100 shadow-sm">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div> رادار متصل
+                </span>
+            </div>
+            <div id="salon-orders-container" class="space-y-4 min-h-[150px]"></div>
+        </section>
+
+        <!-- 2. قائمة الخدمات والمبيعات (المنيو) -->
+        <section id="salon-services" class="view hidden space-y-6">
+            <div class="flex justify-between items-center border-b border-gray-100 pb-4 mt-2">
+                <h3 class="font-black text-2xl text-gray-900 flex items-center gap-2"><i class="fa-solid fa-list-check text-purple-500"></i> المنيو والمبيعات</h3>
+                <button onclick="openServiceModal()" class="bg-gray-900 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-gray-900/20 hover:bg-black hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-plus text-purple-400"></i> إضافة عنصر
+                </button>
+            </div>
+            
+            <div class="flex gap-2 bg-white p-1.5 rounded-xl shadow-sm border border-gray-100">
+                <button onclick="switchMenuTab('services')" id="tab-services-btn" class="flex-1 py-2.5 rounded-lg text-xs font-black bg-gray-900 text-white shadow-sm transition active:scale-95">الخدمات الأساسية</button>
+                <button onclick="switchMenuTab('products')" id="tab-products-btn" class="flex-1 py-2.5 rounded-lg text-xs font-bold text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition active:scale-95">المنتجات (المتجر)</button>
+            </div>
+
+            <div id="salon-services-list" class="space-y-3"></div>
+            <div id="salon-products-list" class="space-y-3 hidden"></div>
+        </section>
+
+        <!-- 3. فريق العمل والكباتن -->
+        <section id="salon-team" class="view hidden space-y-6">
+            <h3 class="font-black text-2xl text-gray-900 border-b border-gray-100 pb-4 mt-2 flex items-center gap-2"><i class="fa-solid fa-users text-purple-500"></i> فريق العمل</h3>
+            
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 mb-6 transition hover:shadow-md">
+                <h4 class="font-black text-sm mb-4 text-gray-900">إرسال دعوة انضمام لكابتن</h4>
+                <div class="space-y-4">
+                    <div>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fa-solid fa-phone text-gray-400"></i></div>
+                            <input type="tel" id="team-phone-input" class="premium-input text-left pl-10" dir="ltr" placeholder="رقم هاتف الكابتن (01xxxxxxxxx)">
+                        </div>
+                    </div>
+                    <div>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none"><i class="fa-solid fa-scissors text-gray-400"></i></div>
+                            <input type="text" id="team-specialty-input" class="premium-input pr-10" placeholder="التخصص (أطفال، دقن، عريس...)">
+                        </div>
+                    </div>
+                    <button onclick="sendTeamInvite()" class="w-full bg-gray-900 text-white p-4 rounded-xl font-black shadow-md hover:bg-black transition flex justify-center items-center gap-2 text-sm active:scale-95"><i class="fa-solid fa-paper-plane text-purple-400"></i> إرسال الدعوة</button>
+                </div>
+            </div>
+            
+            <h4 class="font-black text-lg mb-4 text-gray-900 flex items-center gap-2"><i class="fa-solid fa-user-tie text-gray-400"></i> أعضاء الفريق والدعوات</h4>
+            <div id="salon-team-list" class="space-y-4"></div>
+        </section>
+
+        <!-- 4. الماليات والإحصائيات -->
+        <section id="salon-finance" class="view hidden space-y-6">
+            <h3 class="font-black text-2xl text-gray-900 border-b border-gray-100 pb-4 mt-2 flex items-center gap-2"><i class="fa-solid fa-chart-line text-purple-500"></i> الماليات والإحصائيات</h3>
+            
+            <div class="grid grid-cols-2 gap-4 mb-2">
+                <div class="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm text-center relative overflow-hidden transition hover:shadow-md">
+                    <div class="absolute top-0 right-0 w-full h-1.5 bg-green-500"></div>
+                    <div class="w-8 h-8 mx-auto bg-green-50 text-green-500 rounded-full flex items-center justify-center mb-2 mt-1"><i class="fa-solid fa-wallet text-sm"></i></div>
+                    <h4 class="text-[10px] text-gray-500 font-bold">أرباحك المتاحة بالمنصة</h4>
+                    <p class="font-black text-2xl mt-1 text-gray-900"><span id="salon-available-balance">0</span> <span class="text-[10px] text-gray-400">ج.م</span></p>
+                    <button onclick="openModal('salon-withdraw-modal')" class="mt-4 w-full bg-gray-50 text-gray-900 border border-gray-100 text-[10px] font-bold py-2.5 rounded-xl hover:bg-gray-100 transition shadow-sm active:scale-95 flex items-center justify-center gap-1"><i class="fa-solid fa-arrow-down text-green-500"></i> سحب رصيد</button>
+                </div>
+                <div class="bg-white p-5 rounded-[2rem] border border-gray-100 shadow-sm text-center relative overflow-hidden transition hover:shadow-md">
+                    <div class="absolute top-0 right-0 w-full h-1.5 bg-red-500"></div>
+                    <div class="w-8 h-8 mx-auto bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-2 mt-1"><i class="fa-solid fa-file-invoice-dollar text-sm"></i></div>
+                    <h4 class="text-[10px] text-gray-500 font-bold">مديونية المنصة عليك</h4>
+                    <p class="font-black text-2xl mt-1 text-red-600"><span id="salon-platform-debt">0</span> <span class="text-[10px] text-red-400">ج.م</span></p>
+                    <button onclick="handleSalonAction('pay')" class="mt-4 w-full bg-red-50 text-red-600 border border-red-100 text-[10px] font-bold py-2.5 rounded-xl hover:bg-red-100 transition shadow-sm active:scale-95 flex items-center justify-center gap-1"><i class="fa-solid fa-arrow-up-right-from-square"></i> سداد المديونية</button>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 transition hover:shadow-md">
+                <div class="flex justify-between items-center mb-5 pb-4 border-b border-gray-50">
+                    <h4 class="font-black text-sm text-gray-900">أداء الفريق والتصفية</h4>
+                    <select id="stats-time-filter" onchange="loadTeamStats()" class="bg-gray-50 border border-gray-200 text-gray-900 text-[11px] rounded-xl focus:ring-purple-500 focus:border-purple-500 block px-3 py-2 font-bold outline-none cursor-pointer shadow-sm">
+                        <option value="today">اليوم</option>
+                        <option value="week">هذا الأسبوع</option>
+                        <option value="month" selected>هذا الشهر</option>
+                    </select>
+                </div>
+                <div id="team-stats-container" class="space-y-5"></div>
+            </div>
+        </section>
+
+        <!-- 5. نظام الـ CRM لولاء العملاء -->
+        <section id="salon-crm" class="view hidden space-y-6">
+            <h3 class="font-black text-2xl text-gray-900 border-b border-gray-100 pb-4 mt-2 flex items-center gap-2"><i class="fa-solid fa-crown text-amber-500"></i> ولاء العملاء (VIP)</h3>
+            
+            <div class="bg-gradient-to-br from-gray-900 to-black text-white p-6 rounded-[2rem] mb-4 relative overflow-hidden shadow-xl">
+                <div class="absolute -right-4 -top-4 text-gray-800 text-6xl opacity-50"><i class="fa-solid fa-ranking-star"></i></div>
+                <div class="relative z-10">
+                    <h4 class="font-black text-lg text-amber-500 mb-1">أفضل عملائك</h4>
+                    <p class="text-xs text-gray-400 font-bold mb-4">كافئ عملائك الدائمين بخصومات وهدايا لتشجيعهم على العودة.</p>
+                    <div class="flex gap-4">
+                        <div class="flex-1 bg-white/10 p-3 rounded-xl border border-white/10">
+                            <p class="text-[10px] text-gray-300">إجمالي العملاء المميزين</p>
+                            <p class="text-xl font-black text-white" id="crm-total-customers">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="crm-customers-list" class="space-y-3"></div>
+        </section>
+
+        <!-- 6. إعدادات الصالون (الملف الشخصي) -->
+        <section id="salon-profile" class="view hidden space-y-6">
+            <h3 class="font-black text-2xl text-gray-900 border-b border-gray-100 pb-4 mt-2 flex items-center gap-2"><i class="fa-solid fa-store text-purple-500"></i> إعدادات الصالون</h3>
+            
+            <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 space-y-6 transition hover:shadow-md">
+                
+                <div class="flex items-center justify-between border-b border-gray-50 pb-5">
+                    <div>
+                        <span class="font-black text-sm text-gray-900 block">حالة الصالون الآن</span>
+                        <span class="text-[10px] text-gray-400 font-bold mt-1 block">تفعيل لاستقبال الحجوزات</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer active:scale-110 transition-transform">
+                        <input type="checkbox" id="salon-active-check" class="sr-only peer" onchange="toggleSalonStatus(this)">
+                        <div class="w-14 h-7 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[-100%] peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-purple-600 shadow-inner"></div>
+                    </label>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-black text-gray-500 mb-2 ml-1">اسم الصالون</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none"><i class="fa-solid fa-store text-gray-400"></i></div>
+                        <input type="text" id="salon-name-input" class="premium-input pr-10" placeholder="اسم الصالون">
+                    </div>
+                </div>
+
+                <!-- نظام الـ Tags المحترف للمميزات -->
+                <div class="border-t border-gray-50 pt-5 mt-2">
+                    <label class="block text-[11px] font-black text-gray-500 mb-2 ml-1">المميزات (اكتب الميزة واضغط Enter ↵)</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-star text-purple-400"></i>
+                        </div>
+                        <input type="text" id="salon-features-input" class="premium-input pr-10 border-gray-200 focus:border-purple-500" placeholder="مثال: واي فاي مجاني، تكييف (اضغط Enter)">
+                    </div>
+                    <div id="salon-features-tags" class="flex flex-wrap gap-2 mt-3 min-h-[30px]"></div>
+                </div>
+
+                <div class="bg-pink-50/30 p-4 rounded-2xl border border-pink-100">
+                    <label class="block text-[11px] font-black text-gray-700 mb-2 ml-1"><i class="fa-brands fa-instagram ml-1 text-pink-600"></i> رابط حساب إنستجرام (اختياري)</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none"><i class="fa-brands fa-instagram text-pink-400"></i></div>
+                        <input type="url" id="salon-social-link-input" class="premium-input pr-10 border-pink-100 focus:border-pink-500 bg-white" placeholder="https://instagram.com/your_salon">
+                    </div>
+                    <p class="text-[9px] text-pink-600/70 mt-2 font-bold">إضافة رابط أعمالك يعزز من ثقة العملاء ويزيد الحجوزات.</p>
+                </div>
+
+                <div class="border-t border-gray-50 pt-5 mt-2">
+                    <label class="block text-[11px] font-black text-gray-500 mb-3 ml-1"><i class="fa-regular fa-clock ml-1 text-purple-500"></i> مواعيد العمل الرسمية</label>
+                    <div class="flex gap-4 items-center">
+                        <div class="flex-1 bg-gray-50 p-3 rounded-2xl border border-gray-100 focus-within:border-purple-500 transition-colors">
+                            <span class="text-[10px] font-bold text-gray-500 block mb-2 text-center">يفتح الساعة</span>
+                            <input type="time" id="salon-work-start" class="w-full bg-transparent text-center font-black text-gray-900 outline-none text-lg tracking-widest">
+                        </div>
+                        <div class="flex-1 bg-gray-50 p-3 rounded-2xl border border-gray-100 focus-within:border-purple-500 transition-colors">
+                            <span class="text-[10px] font-bold text-gray-500 block mb-2 text-center">يغلق الساعة</span>
+                            <input type="time" id="salon-work-end" class="w-full bg-transparent text-center font-black text-gray-900 outline-none text-lg tracking-widest">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-50 pt-5 mt-2">
+                    <label class="block text-[11px] font-black text-gray-500 mb-2 ml-1">موقع الصالون الدقيق (GPS)</label>
+                    <div class="relative">
+                        <textarea id="salon-address-input" placeholder="المحافظة، المنطقة، واسم الشارع التفصيلي..." class="premium-input h-24 resize-none mb-3 text-sm leading-relaxed"></textarea>
+                        <button onclick="getSalonLocation()" class="w-full bg-purple-50 text-purple-600 border border-purple-100 p-4 rounded-xl text-xs font-black flex items-center justify-center gap-2 hover:bg-purple-100 transition shadow-sm active:scale-95">
+                            <i class="fa-solid fa-location-crosshairs text-lg"></i> تحديث موقع الصالون الحالي
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 🌟 إدارة صور والغلاف مدمجة في صفحة الصالون -->
+                <div class="border-t border-gray-50 pt-5 mt-2">
+                    <label class="block text-xs font-black text-gray-900 mb-4 ml-1 flex items-center gap-2"><i class="fa-solid fa-images text-purple-500"></i> صور المكان والغلاف</label>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <p class="text-[10px] font-bold text-gray-500 mb-1">اللوجو (مربع)</p>
+                            <div class="relative w-full h-24 bg-gray-100 rounded-2xl overflow-hidden border border-gray-200 group shadow-inner">
+                                <img id="main-image-preview" src="" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                                <label class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                    <i class="fa-solid fa-camera text-white text-xl"></i>
+                                    <input type="file" accept="image/*" class="hidden" onchange="uploadMainImage(this)">
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-gray-500 mb-1">الغلاف (عرضي)</p>
+                            <div class="relative w-full h-24 bg-gray-100 rounded-2xl overflow-hidden border border-gray-200 group shadow-inner">
+                                <img id="cover-image-preview" src="" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                                <label class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                    <i class="fa-solid fa-camera text-white text-xl"></i>
+                                    <input type="file" accept="image/*" class="hidden" onchange="uploadCoverImage(this)">
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button onclick="openManagePortfolio()" class="w-full bg-purple-50 text-purple-600 border border-purple-100 p-3.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 hover:bg-purple-100 transition shadow-sm active:scale-95 mt-2">
+                        <i class="fa-regular fa-images text-lg"></i> المعرض الداخلي (أعمال الصالون)
+                    </button>
+                </div>
+
+                <button onclick="saveSalonProfile()" class="w-full bg-gray-900 text-white p-4 rounded-xl font-black shadow-lg hover:bg-black transition text-sm flex items-center justify-center gap-2 active:scale-95 mt-4"><i class="fa-solid fa-floppy-disk text-purple-400"></i> حفظ التعديلات</button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- شريط التنقل السفلي المطور (6 أقسام) -->
+    <nav class="bottom-nav grid grid-cols-6 px-1">
+        <div onclick="switchSalonView('salon-dash')" class="nav-item active flex flex-col items-center justify-center" id="s-nav-dash">
+            <i class="fa-solid fa-clipboard-list text-lg mb-0.5"></i><span class="text-[9px] font-bold">الطلبات</span>
+        </div>
+        <div onclick="switchSalonView('salon-services')" class="nav-item flex flex-col items-center justify-center" id="s-nav-services">
+            <i class="fa-solid fa-tags text-lg mb-0.5"></i><span class="text-[9px] font-bold">المنيو</span>
+        </div>
+        <div onclick="switchSalonView('salon-team')" class="nav-item flex flex-col items-center justify-center" id="s-nav-team">
+            <i class="fa-solid fa-users text-lg mb-0.5"></i><span class="text-[9px] font-bold">الفريق</span>
+        </div>
+        <div onclick="switchSalonView('salon-finance')" class="nav-item flex flex-col items-center justify-center" id="s-nav-finance">
+            <i class="fa-solid fa-chart-line text-lg mb-0.5"></i><span class="text-[9px] font-bold">الماليات</span>
+        </div>
+        <div onclick="switchSalonView('salon-crm')" class="nav-item flex flex-col items-center justify-center" id="s-nav-crm">
+            <i class="fa-solid fa-crown text-lg mb-0.5"></i><span class="text-[9px] font-bold">العملاء</span>
+        </div>
+        <div onclick="switchSalonView('salon-profile')" class="nav-item flex flex-col items-center justify-center" id="s-nav-profile">
+            <i class="fa-solid fa-store text-lg mb-0.5"></i><span class="text-[9px] font-bold">الصالون</span>
+        </div>
+    </nav>
+
+    <!-- النوافذ المنبثقة (Modals) -->
+
+    <!-- نافذة إضافة عنصر للمنيو (محدثة لدعم رفع صور المنتجات) -->
+    <div id="salon-service-modal" class="fixed inset-0 bg-gray-900/80 z-[6000] hidden items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm transition-opacity duration-300 pb-safe">
+        <div class="modal-content bg-white w-full max-w-md rounded-t-[2rem] sm:rounded-3xl p-6 sm:p-8 transform transition-transform translate-y-full duration-300 shadow-2xl border border-gray-100 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4 relative">
+                <h3 id="salon-srv-modal-title" class="font-black text-xl text-gray-900">إضافة للمنيو</h3>
+                <button onclick="closeModal('salon-service-modal')" class="w-10 h-10 bg-gray-50 rounded-full text-gray-500 hover:bg-gray-100 transition flex items-center justify-center active:scale-90"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-[11px] font-black text-gray-500 mb-2 ml-1">نوع العنصر</label>
+                    <div class="grid grid-cols-3 gap-2 bg-gray-50 p-1.5 rounded-2xl border border-gray-200">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="salon_srv_type" id="salon-srv-input-basic" value="basic" class="hidden peer" checked onchange="toggleSalonServiceFields()">
+                            <div class="p-2 text-center rounded-xl peer-checked:bg-white peer-checked:shadow-sm text-[10px] font-black transition-all text-gray-500 peer-checked:text-gray-900">خدمة</div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="salon_srv_type" id="salon-srv-input-offer" value="offer" class="hidden peer" onchange="toggleSalonServiceFields()">
+                            <div class="p-2 text-center rounded-xl peer-checked:bg-amber-50 peer-checked:shadow-sm text-[10px] font-black transition-all text-gray-500 peer-checked:text-amber-700">عرض 🔥</div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="salon_srv_type" id="salon-srv-input-product" value="product" class="hidden peer" onchange="toggleSalonServiceFields()">
+                            <div class="p-2 text-center rounded-xl peer-checked:bg-blue-50 peer-checked:shadow-sm text-[10px] font-black transition-all text-gray-500 peer-checked:text-blue-700">منتج 🛍️</div>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-black text-gray-500 mb-2 ml-1" id="label-name-input">الاسم</label>
+                    <input type="text" id="salon-srv-input-name" class="premium-input bg-gray-50" placeholder="مثال: حلاقة / عبوة جل">
+                </div>
+
+                <div id="salon-offer-extra-fields" class="hidden space-y-4 bg-amber-50/50 p-4 rounded-2xl border border-amber-100 relative overflow-hidden">
+                    <label class="block text-[10px] font-black text-amber-800 mb-2 ml-1">وصف العرض</label>
+                    <textarea id="salon-srv-desc" class="premium-input h-20 bg-white resize-none text-sm border-amber-100 focus:border-amber-400" placeholder="تفاصيل العرض للعميل..."></textarea>
+                </div>
+
+                <!-- قسم المنتجات ورفع الصورة -->
+                <div id="salon-product-extra-fields" class="hidden space-y-4 bg-blue-50/50 p-5 rounded-2xl border border-blue-100">
+                    <label class="block text-[10px] font-black text-blue-800 mb-2 ml-1"><i class="fa-solid fa-camera ml-1 text-blue-500"></i> صورة المنتج (مهم للمبيعات)</label>
+                    
+                    <div class="relative w-full h-36 bg-white rounded-xl overflow-hidden border-2 border-dashed border-blue-200 group flex items-center justify-center cursor-pointer hover:bg-blue-50 transition-colors shadow-inner">
+                        <img id="salon-srv-product-image-preview" src="" class="absolute inset-0 w-full h-full object-cover hidden z-10">
+                        
+                        <div id="salon-srv-product-image-placeholder" class="text-center z-0">
+                            <i class="fa-solid fa-cloud-arrow-up text-3xl text-blue-300 mb-2 group-hover:text-blue-500 transition-colors"></i>
+                            <p class="text-[10px] font-bold text-blue-600">اضغط أو اسحب صورة المنتج هنا</p>
+                        </div>
+                        
+                        <input type="file" id="salon-srv-product-image" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" onchange="previewProductImage(this)">
+                    </div>
+
+                    <div class="mt-4">
+                        <label class="block text-[10px] font-black text-blue-800 mb-2 ml-1">الكمية المتاحة في المخزن (Stock)</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none"><i class="fa-solid fa-boxes-stacked text-blue-300"></i></div>
+                            <input type="number" id="salon-srv-stock" class="premium-input bg-white pr-10 border-blue-100 focus:border-blue-400" placeholder="مثال: 10 عبوات">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-black text-gray-500 mb-2 ml-1">السعر (ج.م)</label>
+                    <input type="number" id="salon-srv-input-price" class="premium-input bg-gray-50 text-center text-xl font-black text-purple-600" placeholder="0">
+                </div>
+
+                <button onclick="saveSalonServiceAction()" class="w-full bg-gray-900 text-white p-4 rounded-2xl font-black shadow-lg hover:bg-black transition text-sm mt-4 active:scale-95 flex justify-center items-center gap-2">
+                    <i class="fa-solid fa-floppy-disk"></i> حفظ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تقرير الحلاق (كشف الحساب) -->
+    <div id="barber-report-modal" class="fixed inset-0 bg-gray-900/80 z-[6000] hidden items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm transition-opacity duration-300 pb-safe">
+        <div class="modal-content bg-white w-full max-w-lg rounded-t-[2rem] sm:rounded-[2.5rem] p-6 text-right relative transform transition-transform translate-y-full duration-300 max-h-[90vh] flex flex-col shadow-2xl border border-gray-100">
+            
+            <div class="flex justify-between items-start mb-4 border-b border-gray-100 pb-4 shrink-0 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-24 h-24 bg-purple-50 rounded-br-[100%] pointer-events-none -z-10"></div>
+                <div class="relative z-10">
+                    <h3 class="font-black text-xl text-gray-900 flex items-center gap-2"><i class="fa-solid fa-file-invoice-dollar text-purple-500"></i> كشف الحساب</h3>
+                    <p id="report-barber-name" class="text-sm font-black text-gray-600 mt-1">اسم الكابتن</p>
+                    <p id="report-period-text" class="text-[10px] text-gray-400 font-bold mt-1 tracking-wide"></p>
+                </div>
+                <button onclick="closeModal('barber-report-modal')" class="w-10 h-10 bg-gray-50 rounded-full text-gray-500 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition active:scale-90 relative z-10"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-2 text-center bg-gray-50 p-4 rounded-2xl mb-4 shrink-0 border border-gray-100 shadow-inner">
+                <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-50">
+                    <p class="text-[10px] text-gray-500 font-bold mb-1">الطلبات</p>
+                    <p id="report-total-cuts" class="text-xl font-black text-blue-600">0</p>
+                </div>
+                <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-50">
+                    <p class="text-[10px] text-gray-500 font-bold mb-1">الإجمالي</p>
+                    <p id="report-total-gross" class="text-xl font-black text-green-600">0 <span class="text-[8px] text-green-400">ج.م</span></p>
+                </div>
+                <div class="bg-purple-50 p-2 rounded-xl shadow-sm border border-purple-100">
+                    <p class="text-[10px] text-purple-600 font-bold mb-1">صافي الكابتن (<span id="report-commission-rate">0</span>%)</p>
+                    <p id="report-total-net" class="text-xl font-black text-purple-700">0 <span class="text-[8px] text-purple-400">ج.م</span></p>
+                </div>
+            </div>
+            
+            <button onclick="shareBarberReport()" class="w-full bg-[#25D366] text-white p-3 rounded-xl font-bold shadow-md hover:bg-[#128C7E] transition mb-4 active:scale-95 flex items-center justify-center gap-2 text-sm shrink-0">
+                <i class="fa-brands fa-whatsapp text-lg"></i> مشاركة التقرير مع الكابتن
+            </button>
+
+            <div class="flex-1 overflow-y-auto pr-1 space-y-3 custom-scrollbar" id="report-orders-list"></div>
+        </div>
+    </div>
+
+    <!-- نافذة مكافأة العميل (CRM) -->
+    <div id="salon-reward-modal" class="fixed inset-0 bg-gray-900/80 z-[6000] hidden items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm transition-opacity duration-300 pb-safe">
+        <div class="modal-content bg-white w-full max-w-sm rounded-t-[2rem] sm:rounded-3xl p-6 sm:p-8 transform transition-transform translate-y-full duration-300 shadow-2xl border border-gray-100">
+            <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4 relative">
+                <h3 class="font-black text-xl text-gray-900 flex items-center gap-2"><i class="fa-solid fa-gift text-amber-500"></i> مكافأة عميل مميز</h3>
+                <button onclick="closeModal('salon-reward-modal')" class="w-10 h-10 bg-gray-50 rounded-full text-gray-500 hover:bg-gray-100 transition flex items-center justify-center active:scale-90"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <p id="reward-customer-name" class="text-sm font-black text-gray-900 mb-4 text-center bg-gray-50 p-3 rounded-xl border border-gray-100"></p>
+            <input type="hidden" id="reward-customer-id">
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-[11px] font-black text-gray-500 mb-2 ml-1">رسالة الإشعار أو كود الخصم</label>
+                    <textarea id="reward-message" class="premium-input h-24 resize-none text-sm" placeholder="مثال: شكراً لثقتك الدائمة! كهدية من الصالون، استخدم كود VIP20 لخصم 20% في زيارتك القادمة."></textarea>
+                </div>
+                <button onclick="sendRewardNotification()" class="w-full bg-gray-900 text-white p-4 rounded-xl font-black shadow-lg hover:bg-black transition text-sm active:scale-95 flex items-center justify-center gap-2">
+                    إرسال الإشعار فوراً <i class="fa-solid fa-paper-plane text-amber-500"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة سحب الأرباح -->
+    <div id="salon-withdraw-modal" class="fixed inset-0 bg-gray-900/70 z-[6000] hidden items-end sm:items-center justify-center sm:p-4 backdrop-blur-sm transition-opacity duration-300 pb-safe">
+        <div class="modal-content bg-white w-full max-w-md rounded-t-[2rem] sm:rounded-3xl p-6 sm:p-8 transform transition-transform translate-y-full duration-300 shadow-2xl border border-gray-100">
+            <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4 relative">
+                <h3 class="font-black text-xl text-gray-900"><i class="fa-solid fa-money-bill-transfer text-green-500 ml-2"></i>سحب الأرباح</h3>
+                <button onclick="closeModal('salon-withdraw-modal')" class="w-10 h-10 bg-gray-50 rounded-full text-gray-500 hover:bg-gray-100 transition flex items-center justify-center active:scale-90"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="mb-5">
+                <p class="text-[11px] text-gray-500 font-black mb-3 pl-1">اختر طريقة السحب المفضلة:</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <label class="cursor-pointer group">
+                        <input type="radio" name="salon_withdraw_method" value="instapay" class="hidden peer" checked onchange="toggleSalonWithdrawFields()">
+                        <div class="p-3 text-center border-2 border-gray-100 rounded-xl peer-checked:border-purple-600 peer-checked:bg-purple-50 text-xs font-black text-gray-500 peer-checked:text-purple-700 transition shadow-sm group-active:scale-95"><i class="fa-solid fa-bolt mb-1 block text-amber-500 text-lg"></i>انستاباي</div>
+                    </label>
+                    <label class="cursor-pointer group">
+                        <input type="radio" name="salon_withdraw_method" value="visa" class="hidden peer" onchange="toggleSalonWithdrawFields()">
+                        <div class="p-3 text-center border-2 border-gray-100 rounded-xl peer-checked:border-gray-900 peer-checked:bg-gray-900 text-xs font-black text-gray-500 peer-checked:text-white transition shadow-sm group-active:scale-95"><i class="fa-regular fa-credit-card mb-1 block text-lg"></i>بنكي / محفظة</div>
+                    </label>
+                </div>
+            </div>
+            <div id="salon-withdraw-instapay-fields" class="space-y-3 block">
+                <input type="text" id="salon-withdraw-instapay-address" placeholder="عنوان انستاباي (IPA)" class="premium-input text-left bg-gray-50 focus:bg-white text-purple-600 focus:border-purple-500" dir="ltr">
+            </div>
+            <div id="salon-withdraw-visa-fields" class="space-y-3 hidden">
+                <input type="text" id="salon-withdraw-visa-name" placeholder="الاسم كما هو على الحساب البنكي" class="premium-input bg-gray-50 focus:bg-white focus:border-purple-500 text-sm">
+                <input type="text" id="salon-withdraw-visa-card" placeholder="رقم الحساب أو البطاقة" class="premium-input text-left bg-gray-50 focus:bg-white focus:border-purple-500 text-sm" dir="ltr">
+            </div>
+            <button onclick="confirmSalonWithdraw()" class="w-full bg-gray-900 text-white p-4 rounded-xl font-black mt-6 shadow-lg shadow-gray-900/20 hover:bg-black transition text-sm active:scale-95 flex items-center justify-center gap-2">تأكيد وإرسال الطلب <i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- نافذة سداد المديونية -->
+    <div id="salon-pay-debt-modal" class="fixed inset-0 bg-gray-900/70 z-[6000] hidden items-end sm:items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300 pb-safe">
+        <div class="modal-content bg-white w-full max-w-sm rounded-[2.5rem] p-8 text-center relative overflow-hidden transform transition-transform translate-y-full duration-300 shadow-2xl border border-gray-100">
+            <button onclick="closeModal('salon-pay-debt-modal')" class="absolute top-5 left-5 w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors active:scale-90"><i class="fa-solid fa-xmark text-lg"></i></button>
+            
+            <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 border border-red-100 shadow-inner">
+                <i class="fa-solid fa-hand-holding-dollar"></i>
+            </div>
+            
+            <h3 class="font-black text-xl text-gray-900 mb-2">سداد المديونية</h3>
+            <p class="text-[11px] text-gray-500 mb-5 font-bold leading-relaxed px-2">يرجى تحويل مبلغ المديونية لتجنب إيقاف الصالون عن استقبال الطلبات.</p>
+
+            <div class="bg-red-50 p-5 rounded-2xl mb-6 border border-red-100 shadow-inner">
+                <p class="text-[10px] font-black text-red-400 mb-1 uppercase tracking-wider">المبلغ المطلوب سداده</p>
+                <p id="salon-modal-debt-amount" class="text-4xl font-black text-red-600">0 <span class="text-sm text-red-400">ج.م</span></p>
+            </div>
+
+            <div class="text-right mb-6">
+                <p class="text-[10px] font-bold text-gray-600 mb-2 ml-1 flex items-center gap-1.5"><i class="fa-solid fa-building-columns text-purple-500"></i> حساب الإدارة (انستاباي):</p>
+                <div class="flex items-center gap-2">
+                    <input type="text" id="salon-admin-instapay-address" value="the.world2002925@instapay" class="bg-gray-50 p-3.5 rounded-xl text-center font-bold text-purple-600 w-full border border-gray-200 outline-none text-sm focus:border-purple-500 transition-colors shadow-inner" readonly dir="ltr">                    
+                    <button onclick="copyAdminInstapaySalon()" class="bg-gray-900 text-white w-[52px] h-[52px] rounded-xl hover:bg-black flex-shrink-0 transition shadow-sm active:scale-95"><i class="fa-regular fa-copy text-lg"></i></button>
+                </div>
+            </div>
+
+            <a href="instapay://share" class="flex items-center justify-center gap-2 w-full bg-purple-600 text-white p-3.5 rounded-xl font-bold shadow-md hover:bg-purple-700 transition mb-3 active:scale-95">
+                <i class="fa-solid fa-bolt text-amber-400 text-lg"></i> فتح تطبيق انستاباي
+            </a>
+
+            <button onclick="notifyAdminDebtPaidSalon()" class="w-full bg-white text-gray-700 border border-gray-200 p-3.5 rounded-xl font-bold shadow-sm hover:bg-gray-50 transition text-xs active:scale-95 text-center">
+                قمت بالتحويل (إرسال تأكيد للإدارة)
+            </button>
+        </div>
+    </div>
+
+    <!-- إدارة معرض الصور الداخلي -->
+    <div id="manage-portfolio-modal" class="fixed inset-0 bg-gray-900/80 z-[6000] hidden items-end sm:items-center justify-center sm:p-4 backdrop-blur-md transition-opacity duration-300 pb-safe">
+        <div class="modal-content bg-white w-full max-w-md rounded-t-[2rem] sm:rounded-[2.5rem] h-[85vh] sm:h-[80vh] flex flex-col transform transition-transform translate-y-full duration-300 shadow-2xl border border-gray-100 overflow-hidden">
+            
+            <div class="p-6 pb-4 border-b border-gray-100 flex justify-between items-center bg-white/90 backdrop-blur-md z-10 shadow-sm shrink-0">
+                <div>
+                    <h3 class="font-black text-xl text-gray-900 flex items-center gap-2"><i class="fa-solid fa-images text-purple-500"></i> معرض الأعمال</h3>
+                    <p class="text-[10px] text-gray-500 font-bold mt-1">أضف صور أعمالك الداخلية لجذب المزيد من العملاء</p>
+                </div>
+                <button onclick="closeModal('manage-portfolio-modal')" class="w-10 h-10 bg-gray-50 text-gray-500 rounded-full flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors active:scale-90 shrink-0"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div class="p-6 overflow-y-auto flex-1 custom-scrollbar bg-gray-50">
+                <label class="border-2 border-dashed border-purple-200 bg-purple-50/50 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-purple-50 hover:border-purple-300 transition-all shadow-sm mb-6 group active:scale-[0.98]">
+                    <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-md text-purple-600 text-2xl mb-3 group-hover:scale-110 transition-transform"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                    <span class="font-black text-sm text-purple-700">اضغط لرفع صورة جديدة للمكان</span>
+                    <span class="text-[10px] text-purple-600/70 font-bold mt-1">يُفضل صور مربعة بجودة عالية وإضاءة جيدة</span>
+                    <input type="file" accept="image/*" class="hidden" onchange="uploadSalonPortfolioImage(event)">
+                </label>
+
+                <div id="portfolio-manage-grid" class="grid grid-cols-2 gap-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- السكريبت الداخلي لعمل معاينة للصورة قبل الرفع -->
+    <script>
+        function previewProductImage(input) {
+            const preview = document.getElementById('salon-srv-product-image-preview');
+            const placeholder = document.getElementById('salon-srv-product-image-placeholder');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                    placeholder.classList.add('hidden');
+                }
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.src = '';
+                preview.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+            }
+        }
+    </script>
+
+    <!-- تهيئة الإشعارات ومكتبات قاعدة البيانات -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+          appId: "b42c9e5d-cad6-470f-9eea-31f07b195168",
+          notifyButton: { enable: true }
+        });
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase-client.js"></script>
+    <script src="../js/shared.js"></script>
+    <script src="../js/salon.js"></script>
+</body>
+</html>

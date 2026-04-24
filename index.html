@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BarberHome | الدخول</title>
+    
+    <meta name="google-site-verification" content="ST_gZcwOpxZRJ0bNMAg51M3FbqSsskB9KbCrWMcddBE" />
+    
+    <meta name="description" content="تطبيق BarberHome - احجز أفضل كابتن حلاقة لزيارة منزلية أو احجز موعدك في أرقى الصالونات في مصر. تجربة حلاقة VIP بكل سهولة وسرعة.">
+    <meta name="keywords" content="حلاق منزلي, صالون حلاقة, حجز كوافير رجالي, تطبيق حلاقة, حلاق دليفري, BarberHome, أفضل حلاق في مصر">
+
+    <meta property="og:title" content="BarberHome | حلاقك الخاص في منزلك">
+    <meta property="og:description" content="احجز موعدك الآن مع أفضل الكباتن والصالونات.">
+    <meta property="og:image" content="https://barberhome.pages.dev/assets/192.png"> 
+    <meta property="og:url" content="https://barberhome.pages.dev/">
+    <meta property="og:type" content="website">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "MobileApplication",
+      "name": "BarberHome",
+      "operatingSystem": "Web, Android, iOS",
+      "applicationCategory": "LifestyleApplication",
+      "description": "تطبيق لحجز خدمات الحلاقة المنزلية ومواعيد الصالونات في مصر.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EGP"
+      }
+    }
+    </script>
+
+    <link rel="icon" type="image/png" href="assets/android/mipmap-hdpi/icon.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="بربر هوم">
+    <link rel="apple-touch-icon" href="assets/barber.png">
+    <link rel="icon" type="image/png" href="assets/192.png">
+    <link rel="apple-touch-icon" href="assets/192.png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 flex flex-col justify-center min-h-screen text-gray-900 font-sans selection:bg-amber-100">
+
+    <div id="global-loader" class="fixed inset-0 bg-white/90 z-[9999] flex flex-col items-center justify-center backdrop-blur-sm transition-all duration-300">
+        <div class="relative w-14 h-14">
+            <div class="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-gray-900 rounded-full border-t-transparent animate-spin"></div>
+            <i class="fa-solid fa-scissors absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-900 text-lg"></i>
+        </div>
+        <p class="mt-4 font-bold text-gray-600 text-xs tracking-widest uppercase">جاري التحقق...</p>
+    </div>
+    
+    <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl opacity-0 pointer-events-none transition-all duration-300 z-[2000] text-sm font-bold flex items-center gap-3 transform -translate-y-4 w-max max-w-[90%]">
+        <div class="w-8 h-8 bg-amber-500/20 text-amber-500 rounded-full flex items-center justify-center shrink-0 shadow-sm animate-pulse">
+            <i class="fa-solid fa-bell"></i>
+        </div>
+        <span id="toast-msg">رسالة</span>
+    </div>
+
+    <main id="main-content" class="p-5 max-w-md mx-auto w-full relative hidden">
+        <div id="auth-environment" class="block">
+            
+            <div class="text-center mt-4 mb-8">
+                <div class="w-24 h-24 bg-gray-900 text-white rounded-3xl flex items-center justify-center text-4xl shadow-xl mx-auto mb-5 relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-amber-500 w-full h-full transform scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-500 z-0"></div>
+                    <i class="fa-solid fa-scissors relative z-10 group-hover:text-gray-900 transition-colors duration-500"></i>
+                </div>
+                <h1 class="text-4xl font-black text-gray-900 tracking-tight">Barber<span class="text-amber-500">Home</span></h1>
+                <p class="text-gray-500 mt-2 text-xs font-bold uppercase tracking-widest">Premium Grooming</p>
+            </div>
+
+            <div class="floating-card p-8 bg-white border border-gray-100 shadow-xl rounded-[2.5rem]">
+                
+                <div class="flex bg-gray-50 border border-gray-100 rounded-2xl p-1.5 mb-8">
+                    <button type="button" id="tab-login" onclick="window.toggleAuthTab('login')" class="flex-1 py-3 text-sm font-bold bg-white shadow-sm rounded-xl text-gray-900 transition-all">تسجيل الدخول</button>
+                    <button type="button" id="tab-register" onclick="window.toggleAuthTab('register')" class="flex-1 py-3 text-sm font-bold text-gray-500 rounded-xl transition hover:text-gray-700">إنشاء حساب</button>
+                </div>
+
+                <div id="auth-form-area" class="space-y-5">
+                    
+                    <div id="register-fields" class="hidden space-y-5 animate-[fadeIn_0.3s_ease-out]">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-2 ml-1">الاسم أو الصالون</label>
+                            <input type="text" id="reg-fullname" placeholder="الاسم بالكامل" class="premium-input bg-gray-50">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-2 ml-1">نوع الحساب</label>
+                            <div class="grid grid-cols-3 gap-2 mb-2">
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="role" value="customer" class="hidden peer" checked onchange="window.toggleBarberFields(false)">
+                                    <div class="p-3 text-center border border-gray-100 bg-gray-50 rounded-2xl peer-checked:border-gray-900 peer-checked:bg-gray-900 text-[10px] font-bold text-gray-500 peer-checked:text-white transition-all shadow-sm">
+                                        <i class="fa-solid fa-user mb-2 block text-xl"></i> عميل
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="role" value="barber" class="hidden peer" onchange="window.toggleBarberFields(true)">
+                                    <div class="p-3 text-center border border-gray-100 bg-gray-50 rounded-2xl peer-checked:border-amber-500 peer-checked:bg-amber-500 text-[10px] font-bold text-gray-500 peer-checked:text-gray-900 transition-all shadow-sm">
+                                        <i class="fa-solid fa-scissors mb-2 block text-xl"></i> كابتن
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="role" value="salon_admin" class="hidden peer" onchange="window.toggleBarberFields(false)">
+                                    <div class="p-3 text-center border border-gray-100 bg-gray-50 rounded-2xl peer-checked:border-purple-600 peer-checked:bg-purple-600 text-[10px] font-bold text-gray-500 peer-checked:text-white transition-all shadow-sm">
+                                        <i class="fa-solid fa-shop mb-2 block text-xl"></i> صالون
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div id="barber-extra-fields" class="hidden space-y-4 bg-gray-50 p-5 rounded-[1.5rem] border border-gray-100">
+                            <p class="text-xs text-gray-900 font-bold mb-3"><i class="fa-solid fa-shield-halved text-blue-500 ml-1"></i> بيانات التحقق للكابتن:</p>
+                            <input type="number" id="reg-national-id" placeholder="الرقم القومي أو الهوية" class="premium-input bg-white">
+                            
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-500 mb-2">الصورة الشخصية (إجبارية)</label>
+                                <div class="relative flex items-center justify-center w-full p-4 border border-dashed border-gray-300 rounded-2xl bg-white hover:bg-gray-50 transition-all group overflow-hidden cursor-pointer">
+                                    <input type="file" id="reg-avatar" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" onchange="window.previewImage(this, 'avatar-preview')">
+                                    <div class="flex items-center gap-4 w-full relative z-10 pointer-events-none">
+                                        <div class="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 flex-shrink-0 overflow-hidden relative flex items-center justify-center shadow-sm">
+                                            <i class="fa-solid fa-camera text-xl text-gray-300"></i>
+                                            <img id="avatar-preview" class="absolute inset-0 w-full h-full object-cover hidden z-10 bg-white">
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-xs font-bold text-gray-700 group-hover:text-gray-900 transition">ارفع صورة واضحة</p>
+                                            <p class="text-[9px] text-gray-400 mt-1">خلفية فاتحة، الوجه واضح</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="otp-section" class="hidden space-y-4 bg-blue-50 p-5 rounded-[1.5rem] border border-blue-100 animate-[fadeIn_0.3s_ease-out]">
+                            <p class="text-xs text-gray-900 font-bold mb-2 text-center"><i class="fa-brands fa-telegram text-[#0088cc] text-lg mb-1 block"></i> أدخل الكود المرسل إليك عبر تليجرام</p>
+                            <input type="number" id="otp-input" placeholder="مثال: 4589" class="premium-input bg-white text-center text-xl tracking-[0.5em] font-black" dir="ltr">
+                            <button type="button" onclick="window.verifyOTPAndProceed()" class="w-full bg-[#0088cc] text-white p-3.5 rounded-xl font-black shadow-md hover:bg-[#0077b5] transition active:scale-95 text-sm">تأكيد وتسجيل الحساب <i class="fa-solid fa-check ml-1"></i></button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-2 ml-1">رقم الهاتف</label>
+                        <input type="tel" id="login-phone" placeholder="01xxxxxxxxx" class="premium-input bg-gray-50 text-left font-black" dir="ltr">
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2 ml-1">
+                            <label class="block text-xs font-bold text-gray-500">كلمة المرور</label>
+                            <button type="button" id="forgot-password-link" onclick="window.openModal('forgot-pass-modal')" class="text-[10px] font-bold text-amber-600 hover:text-amber-700 transition">نسيت كلمة السر؟</button>
+                        </div>
+                        <input type="password" id="login-pass" placeholder="••••••••" class="premium-input bg-gray-50 text-left font-black" dir="ltr">
+                    </div>
+
+                    <button type="button" id="auth-submit-btn" onclick="window.handleAuthSubmit()" class="w-full bg-gray-900 text-white p-4 rounded-2xl font-black shadow-lg mt-6 hover:bg-black transition-all flex justify-center items-center gap-2 text-lg transform hover:-translate-y-1 active:scale-95">
+                        <span id="auth-btn-text">تسجيل الدخول</span>
+                        <i id="auth-btn-icon" class="fa-solid fa-arrow-left text-sm mt-0.5"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="forgot-pass-modal" class="fixed inset-0 bg-gray-900/80 z-[6000] hidden items-center justify-center p-4 backdrop-blur-sm pb-safe">
+        <div class="bg-white w-full max-w-md rounded-[2rem] p-6 sm:p-8 text-center relative overflow-hidden shadow-2xl modal-content transform scale-90 opacity-0 transition-all duration-300">
+            <button onclick="window.closeModal('forgot-pass-modal')" class="absolute top-4 left-4 w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors active:scale-90"><i class="fa-solid fa-xmark text-lg"></i></button>
+            
+            <div class="w-14 h-14 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center text-2xl mx-auto mb-4 border border-amber-100 shadow-inner">
+                <i class="fa-solid fa-unlock-keyhole"></i>
+            </div>
+            
+            <h3 class="font-black text-xl text-gray-900 mb-4">استعادة كلمة المرور</h3>
+            
+            <div class="space-y-4 text-right">
+                <div id="reset-step-1">
+                    <label class="block text-xs font-bold text-gray-500 mb-2 ml-1">رقم الهاتف المسجل</label>
+                    <input type="tel" id="reset-phone" placeholder="01xxxxxxxxx" class="premium-input bg-gray-50 mb-3 text-left font-black" dir="ltr">
+                    <button onclick="window.requestPasswordResetOTP()" class="w-full bg-[#0088cc] text-white p-3.5 rounded-xl font-bold shadow-md hover:bg-[#0077b5] transition-all active:scale-95 flex items-center justify-center gap-2 text-sm">
+                        <i class="fa-brands fa-telegram text-lg"></i> طلب كود الاستعادة 
+                    </button>
+                </div>
+
+                <div id="reset-step-2" class="hidden space-y-4 animate-[fadeIn_0.3s_ease-out]">
+                    <div class="bg-amber-50 p-3 rounded-xl border border-amber-100">
+                        <label class="block text-xs font-bold text-amber-700 mb-1 text-center">الكود المرسل عبر تليجرام</label>
+                        <input type="number" id="reset-otp" placeholder="----" class="premium-input bg-white text-center text-xl tracking-[0.5em] font-black" dir="ltr">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-2 ml-1">كلمة المرور الجديدة</label>
+                        <input type="password" id="reset-new-pass" placeholder="أدخل كلمة مرور قوية" class="premium-input bg-gray-50 text-left font-black" dir="ltr">
+                    </div>
+                    <button onclick="window.submitNewPassword()" class="w-full bg-gray-900 text-white p-4 rounded-xl font-black shadow-lg hover:bg-black transition-all active:scale-95 text-sm flex justify-center items-center gap-2 mt-2">
+                        حفظ الدخول <i class="fa-solid fa-check"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+          appId: "b42c9e5d-cad6-470f-9eea-31f07b195168",
+          notifyButton: { enable: true }
+        });
+        OneSignal.Slidedown.promptPush(); 
+      });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/shared.js"></script>
+    <script src="js/auth.js"></script>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', async () => {
+          const loader = document.getElementById('global-loader');
+          const mainContent = document.getElementById('main-content');
+
+          const hasToken = Object.keys(localStorage).some(key => key.includes('auth-token'));
+          if (!hasToken) {
+              if (loader) loader.classList.add('hidden');
+              if (mainContent) mainContent.classList.remove('hidden');
+              return;
+          }
+
+          try {
+              const { data: { session } } = await supabaseClient.auth.getSession();
+              
+              if (session && session.user) {
+                  if (window.OneSignalDeferred) {
+                      OneSignalDeferred.push(async function(OneSignal) {
+                        await OneSignal.login(session.user.id);
+                      });
+                  }
+
+                  const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', session.user.id).single();
+
+                  if (profile) {
+                      let page = "";
+                      if (profile.role === 'barber') page = 'barber.html';
+                      else if (profile.role === 'customer') page = 'customer.html';
+                      else if (profile.role === 'salon_admin') page = 'salon.html';
+                      else if (profile.role === 'admin' || profile.role === 'sub_admin') page = 'admin.html';
+
+                      if (page !== "") {
+                          window.location.replace('pages/' + page);
+                          return;
+                      }
+                  }
+              }
+          } catch (err) {
+              console.error("Auth check failed:", err);
+          }
+
+          if (loader) loader.classList.add('hidden');
+          if (mainContent) mainContent.classList.remove('hidden');
+      });
+      if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      // ⚠️ التأكد من أن المسار يبدأ بـ / واسم الملف مطابق تماماً لما هو مرفوع
+      navigator.serviceWorker.register('/OneSignalSDKWorker.js')
+        .then(function(registration) {
+          console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        }, function(err) {
+          console.log('ServiceWorker registration failed: ', err);
+        });
+    });
+  }
+    </script>
+</body>
+</html>
