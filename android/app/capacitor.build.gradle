@@ -9,7 +9,7 @@ android {
 
 apply from: "../capacitor-cordova-android-plugins/cordova.variables.gradle"
 dependencies {
-
+    implementation project(':capacitor-status-bar')
     implementation "com.onesignal:OneSignal:5.7.6"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.7.10"
 }

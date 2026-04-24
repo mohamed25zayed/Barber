@@ -248,7 +248,6 @@
             </div>
 
             <div id="view-finance" class="view hidden space-y-8">
-                <!-- 🚀 إعدادات النظام والعمولات -->
                 <div class="bg-gray-900 p-6 lg:p-8 rounded-[2.5rem] shadow-xl border border-gray-800 relative overflow-hidden text-white mb-8">
                     <div class="absolute top-0 left-0 w-32 h-32 bg-amber-500/10 rounded-br-[100%] pointer-events-none"></div>
                     <h3 class="text-xl font-black mb-6 flex items-center gap-3 relative z-10"><i class="fa-solid fa-sliders text-amber-500"></i> إعدادات المنصة والعمولات</h3>
@@ -551,17 +550,46 @@
         }
     </script>
     
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
-        await OneSignal.init({
-          appId: "b42c9e5d-cad6-470f-9eea-31f07b195168",
-          notifyButton: {
-            enable: true,
+      const ONESIGNAL_APP_ID = "b42c9e5d-cad6-470f-9eea-31f07b195168";
+
+      function initOneSignalUnified() {
+          const isNativeApp = window.Capacitor && window.Capacitor.isNativePlatform();
+
+          if (isNativeApp) {
+              // بيئة تطبيق الهاتف (Native)
+              document.addEventListener('deviceready', () => {
+                  if (window.plugins && window.plugins.OneSignal) {
+                      window.plugins.OneSignal.setAppId(ONESIGNAL_APP_ID);
+                      window.plugins.OneSignal.promptForPushNotificationsWithUserResponse(function(accepted) {
+                          console.log("User accepted notifications: " + accepted);
+                      });
+                      // إضافة التاج الخاص بالإدارة
+                      window.plugins.OneSignal.sendTag("user_type", "admin");
+                  }
+              }, false);
+          } else {
+              // بيئة الويب و PWA
+              const script = document.createElement('script');
+              script.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js";
+              script.defer = true;
+              document.head.appendChild(script);
+
+              window.OneSignalDeferred = window.OneSignalDeferred || [];
+              window.OneSignalDeferred.push(async function(OneSignal) {
+                  await OneSignal.init({
+                      appId: ONESIGNAL_APP_ID,
+                      notifyButton: { enable: true }
+                  });
+                  // إضافة التاج الخاص بالإدارة لضمان استلام إشعارات الإدارة فقط
+                  OneSignal.User.addTag("user_type", "admin");
+                  await OneSignal.Slidedown.promptPush(); 
+              });
           }
-        });
-      });
+      }
+
+      // تشغيل التهيئة
+      initOneSignalUnified();
     </script>
     
     <audio id="sound-new-order" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto"></audio>

@@ -202,16 +202,42 @@
         </div>
     </div>
 
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
-        await OneSignal.init({
-          appId: "b42c9e5d-cad6-470f-9eea-31f07b195168",
-          notifyButton: { enable: true }
-        });
-        OneSignal.Slidedown.promptPush(); 
-      });
+      const ONESIGNAL_APP_ID = "b42c9e5d-cad6-470f-9eea-31f07b195168";
+
+      function initOneSignalUnified() {
+          const isNativeApp = window.Capacitor && window.Capacitor.isNativePlatform();
+
+          if (isNativeApp) {
+              // بيئة تطبيق الهاتف (Native)
+              document.addEventListener('deviceready', () => {
+                  if (window.plugins && window.plugins.OneSignal) {
+                      window.plugins.OneSignal.setAppId(ONESIGNAL_APP_ID);
+                      window.plugins.OneSignal.promptForPushNotificationsWithUserResponse(function(accepted) {
+                          console.log("User accepted notifications: " + accepted);
+                      });
+                  }
+              }, false);
+          } else {
+              // بيئة الويب و PWA
+              const script = document.createElement('script');
+              script.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js";
+              script.defer = true;
+              document.head.appendChild(script);
+
+              window.OneSignalDeferred = window.OneSignalDeferred || [];
+              window.OneSignalDeferred.push(async function(OneSignal) {
+                  await OneSignal.init({
+                      appId: ONESIGNAL_APP_ID,
+                      notifyButton: { enable: true }
+                  });
+                  OneSignal.Slidedown.promptPush(); 
+              });
+          }
+      }
+
+      // تشغيل التهيئة
+      initOneSignalUnified();
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -235,9 +261,22 @@
               const { data: { session } } = await supabaseClient.auth.getSession();
               
               if (session && session.user) {
-                  if (window.OneSignalDeferred) {
-                      OneSignalDeferred.push(async function(OneSignal) {
-                        await OneSignal.login(session.user.id);
+                  // ربط المستخدم بالإشعارات للبيئتين
+                  const isNativeApp = window.Capacitor && window.Capacitor.isNativePlatform();
+                  if (isNativeApp) {
+                      if (window.plugins && window.plugins.OneSignal) {
+                          window.plugins.OneSignal.login(session.user.id);
+                      } else {
+                          document.addEventListener('deviceready', () => {
+                              if (window.plugins && window.plugins.OneSignal) {
+                                  window.plugins.OneSignal.login(session.user.id);
+                              }
+                          }, false);
+                      }
+                  } else {
+                      window.OneSignalDeferred = window.OneSignalDeferred || [];
+                      window.OneSignalDeferred.push(async function(OneSignal) {
+                          await OneSignal.login(session.user.id);
                       });
                   }
 
@@ -263,17 +302,17 @@
           if (loader) loader.classList.add('hidden');
           if (mainContent) mainContent.classList.remove('hidden');
       });
+
       if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-      // ⚠️ التأكد من أن المسار يبدأ بـ / واسم الملف مطابق تماماً لما هو مرفوع
-      navigator.serviceWorker.register('/OneSignalSDKWorker.js')
-        .then(function(registration) {
-          console.log('ServiceWorker registration successful with scope: ', registration.scope);
-        }, function(err) {
-          console.log('ServiceWorker registration failed: ', err);
-        });
-    });
-  }
+          window.addEventListener('load', function() {
+              navigator.serviceWorker.register('/OneSignalSDKWorker.js')
+                .then(function(registration) {
+                  console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }, function(err) {
+                  console.log('ServiceWorker registration failed: ', err);
+                });
+          });
+      }
     </script>
 </body>
 </html>

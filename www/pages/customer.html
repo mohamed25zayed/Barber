@@ -14,7 +14,6 @@
     <meta property="og:url" content="https://yourdomain.vip">
     <meta property="og:type" content="website">
     
-    <!-- 🚀 خط Cairo الجديد -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -238,7 +237,6 @@
             </div>
         </section>
 
-        <!-- 🚀 شاشة الاستكشاف (Explore) -->
         <section id="customer-explore" class="view space-y-6 hidden pb-6">
             <div class="flex items-center gap-3 border-b border-gray-100 pb-4 mt-2 sticky top-[80px] bg-gray-50/90 backdrop-blur-md z-20 pt-2">
                 <div class="w-10 h-10 bg-gradient-to-tr from-pink-500 via-red-500 to-amber-500 text-white rounded-xl flex items-center justify-center text-lg shadow-md">
@@ -250,10 +248,8 @@
                 </div>
             </div>
 
-            <!-- حاوية الصور (Masonry Layout) -->
             <div id="explore-feed-container" class="columns-2 gap-4 space-y-4 px-1">
-                <!-- سيتم حقن الصور هنا عبر الجافاسكريبت -->
-            </div>
+                </div>
             <div class="h-24 w-full shrink-0"></div>
         </section>
 
@@ -538,7 +534,6 @@
             </div>
         </div>
 
-        <!-- 🚀 تم تحديث نافذة الشكاوى لتشمل "الإبلاغ عن محتوى مسيء" لتناسب ميزة الاستكشاف الجديدة -->
         <div id="complaint-modal" class="fixed inset-0 bg-gray-900/80 z-[7000] hidden items-end sm:items-center justify-center p-4 backdrop-blur-sm pb-safe">
             <div class="bg-white w-full max-w-md rounded-[2.5rem] p-6 sm:p-8 text-right relative overflow-hidden shadow-2xl modal-content transform translate-y-full opacity-0 transition-all duration-300">
                 <button onclick="closeModal('complaint-modal')" class="absolute top-5 left-5 w-8 h-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors active:scale-90"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -580,7 +575,6 @@
 
     </main>
 
-    <!-- 🚀 تم تحديث الشريط السفلي ليصبح 4 أزرار ويشمل زر "الاستكشاف" -->
     <nav class="bottom-nav grid grid-cols-4">
         <div onclick="switchCustomerView('customer-home')" class="nav-item active flex flex-col items-center" id="c-nav-home">
             <i class="fa-solid fa-house mb-1 text-lg"></i><span class="text-[10px] font-bold">الرئيسية</span>
@@ -596,18 +590,47 @@
         </div>
     </nav>
 
-<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<script>
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: "b42c9e5d-cad6-470f-9eea-31f07b195168",
-      notifyButton: { enable: true }
-    });
-    // إضافة التاج الخاص بالعملاء لضمان استلام إشعارات العملاء فقط
-    OneSignal.User.addTag("user_type", "customer");
-  });
-</script>
+    <script>
+      const ONESIGNAL_APP_ID = "b42c9e5d-cad6-470f-9eea-31f07b195168";
+
+      function initOneSignalUnified() {
+          const isNativeApp = window.Capacitor && window.Capacitor.isNativePlatform();
+
+          if (isNativeApp) {
+              // بيئة تطبيق الهاتف (Native)
+              document.addEventListener('deviceready', () => {
+                  if (window.plugins && window.plugins.OneSignal) {
+                      window.plugins.OneSignal.setAppId(ONESIGNAL_APP_ID);
+                      window.plugins.OneSignal.promptForPushNotificationsWithUserResponse(function(accepted) {
+                          console.log("User accepted notifications: " + accepted);
+                      });
+                      // إضافة التاج الخاص بالعملاء
+                      window.plugins.OneSignal.sendTag("user_type", "customer");
+                  }
+              }, false);
+          } else {
+              // بيئة الويب و PWA
+              const script = document.createElement('script');
+              script.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js";
+              script.defer = true;
+              document.head.appendChild(script);
+
+              window.OneSignalDeferred = window.OneSignalDeferred || [];
+              window.OneSignalDeferred.push(async function(OneSignal) {
+                  await OneSignal.init({
+                      appId: ONESIGNAL_APP_ID,
+                      notifyButton: { enable: true }
+                  });
+                  // إضافة التاج الخاص بالعملاء لضمان استلام إشعارات العملاء فقط
+                  OneSignal.User.addTag("user_type", "customer");
+                  OneSignal.Slidedown.promptPush(); 
+              });
+          }
+      }
+
+      // تشغيل التهيئة
+      initOneSignalUnified();
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/supabase-client.js"></script>

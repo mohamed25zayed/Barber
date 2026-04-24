@@ -1,5 +1,18 @@
 {
   "appId": "com.barberhome.app",
-  "appName": "BarberHome"
-  "webDir": "www"
+  "appName": "BarberHome",
+  "webDir": "www",
+  "plugins": {
+    "StatusBar": {
+      "overlaysWebView": false,
+      "style": "LIGHT",
+      "backgroundColor": "#ffffff"
+    },
+    "SplashScreen": {
+      "launchShowDuration": 0,
+      "launchAutoHide": true,
+      "backgroundColor": "#ffffff",
+      "showSpinner": false
+    }
+  }
 }

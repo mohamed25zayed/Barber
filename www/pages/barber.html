@@ -339,23 +339,46 @@
         </div>
     </div>
 
-   <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
-        await OneSignal.init({
-          appId: "b42c9e5d-cad6-470f-9eea-31f07b195168",
-          notifyButton: {
-            enable: true,
+      const ONESIGNAL_APP_ID = "b42c9e5d-cad6-470f-9eea-31f07b195168";
+
+      function initOneSignalUnified() {
+          const isNativeApp = window.Capacitor && window.Capacitor.isNativePlatform();
+
+          if (isNativeApp) {
+              // بيئة تطبيق الهاتف (Native)
+              document.addEventListener('deviceready', () => {
+                  if (window.plugins && window.plugins.OneSignal) {
+                      window.plugins.OneSignal.setAppId(ONESIGNAL_APP_ID);
+                      window.plugins.OneSignal.promptForPushNotificationsWithUserResponse(function(accepted) {
+                          console.log("User accepted notifications: " + accepted);
+                      });
+                      // إضافة التاج الخاص بالكابتن
+                      window.plugins.OneSignal.sendTag("user_type", "barber");
+                  }
+              }, false);
+          } else {
+              // بيئة الويب و PWA
+              const script = document.createElement('script');
+              script.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js";
+              script.defer = true;
+              document.head.appendChild(script);
+
+              window.OneSignalDeferred = window.OneSignalDeferred || [];
+              window.OneSignalDeferred.push(async function(OneSignal) {
+                  await OneSignal.init({
+                      appId: ONESIGNAL_APP_ID,
+                      notifyButton: { enable: true }
+                  });
+                  // إضافة التاج الخاص بالكابتن لضمان استلام إشعارات الكباتن فقط
+                  OneSignal.User.addTag("user_type", "barber");
+                  await OneSignal.Slidedown.promptPush(); 
+              });
           }
-        });
-        
-        // ربط التاج الخاص بالكابتن
-        OneSignal.User.addTag("user_type", "barber");
-        
-        // 👈 الكود الصحيح لظهور شاشة الإذن الإجبارية (Slidedown)
-        await OneSignal.Slidedown.promptPush(); 
-      });
+      }
+
+      // تشغيل التهيئة
+      initOneSignalUnified();
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
