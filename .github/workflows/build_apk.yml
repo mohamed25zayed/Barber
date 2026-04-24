@@ -8,6 +8,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # تحديث نسخة Node لـ 22 عشان Capacitor يرضى يشتغل
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
       - name: set up JDK 17
         uses: actions/setup-java@v3
         with:
@@ -26,8 +33,8 @@ jobs:
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug # بيطلع APK
-          ./gradlew bundleRelease  # بيطلع AAB للمتجر
+          ./gradlew assembleDebug
+          ./gradlew bundleRelease
 
       - name: Upload Android Files
         uses: actions/upload-artifact@v4
@@ -38,14 +45,19 @@ jobs:
             android/app/build/outputs/bundle/release/app-release.aab
 
   ios-build:
-    runs-on: macos-latest # لازم ماك عشان الـ iOS
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
       - name: Install Dependencies
         run: npm install
       
       - name: Build iOS Project
         run: |
+          chmod +x ./node_modules/.bin/cap
           npx cap copy ios
-          # ملحوظة: بناء ملف IPA يحتاج شهادات مطور (Provisioning Profiles)
-          # هنا هنكتفي بتجهيز المشروع عشان يكون جاهز للرفع
