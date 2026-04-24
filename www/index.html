@@ -80,8 +80,8 @@
             <div class="floating-card p-8 bg-white border border-gray-100 shadow-xl rounded-[2.5rem]">
                 
                 <div class="flex bg-gray-50 border border-gray-100 rounded-2xl p-1.5 mb-8">
-                    <button type="button" id="tab-login" onclick="window.toggleAuthTab('login')" class="flex-1 py-3 text-sm font-bold bg-white shadow-sm rounded-xl text-gray-900 transition-all">تسجيل الدخول</button>
-                    <button type="button" id="tab-register" onclick="window.toggleAuthTab('register')" class="flex-1 py-3 text-sm font-bold text-gray-500 rounded-xl transition hover:text-gray-700">إنشاء حساب</button>
+                    <button type="button" id="tab-login" onclick="window.toggleAuthTab('login'); document.getElementById('social-auth-section').classList.remove('hidden');" class="flex-1 py-3 text-sm font-bold bg-white shadow-sm rounded-xl text-gray-900 transition-all">تسجيل الدخول</button>
+                    <button type="button" id="tab-register" onclick="window.toggleAuthTab('register'); document.getElementById('social-auth-section').classList.add('hidden');" class="flex-1 py-3 text-sm font-bold text-gray-500 rounded-xl transition hover:text-gray-700">إنشاء حساب</button>
                 </div>
 
                 <div id="auth-form-area" class="space-y-5">
@@ -139,10 +139,7 @@
                         </div>
 
                         <div id="otp-section" class="hidden space-y-4 bg-blue-50 p-5 rounded-[1.5rem] border border-blue-100 animate-[fadeIn_0.3s_ease-out]">
-                            <p class="text-xs text-gray-900 font-bold mb-2 text-center"><i class="fa-brands fa-telegram text-[#0088cc] text-lg mb-1 block"></i> أدخل الكود المرسل إليك عبر تليجرام</p>
-                            <input type="number" id="otp-input" placeholder="مثال: 4589" class="premium-input bg-white text-center text-xl tracking-[0.5em] font-black" dir="ltr">
-                            <button type="button" onclick="window.verifyOTPAndProceed()" class="w-full bg-[#0088cc] text-white p-3.5 rounded-xl font-black shadow-md hover:bg-[#0077b5] transition active:scale-95 text-sm">تأكيد وتسجيل الحساب <i class="fa-solid fa-check ml-1"></i></button>
-                        </div>
+                            </div>
                     </div>
 
                     <div>
@@ -161,6 +158,23 @@
                         <span id="auth-btn-text">تسجيل الدخول</span>
                         <i id="auth-btn-icon" class="fa-solid fa-arrow-left text-sm mt-0.5"></i>
                     </button>
+
+                    <div id="social-auth-section" class="mt-6 block">
+                        <div class="relative flex items-center py-2 mb-4">
+                            <div class="flex-grow border-t border-gray-200"></div>
+                            <span class="flex-shrink-0 mx-4 text-gray-400 text-[10px] font-bold uppercase tracking-wider">أو الدخول السريع</span>
+                            <div class="flex-grow border-t border-gray-200"></div>
+                        </div>
+                        <div class="flex gap-3">
+                            <button type="button" onclick="window.loginWithOAuth('google')" class="flex-1 bg-white border border-gray-200 p-3 rounded-xl shadow-sm hover:bg-gray-50 transition flex items-center justify-center gap-2 font-bold text-xs text-gray-700 active:scale-95">
+                                <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-4 h-4"> جوجل
+                            </button>
+                            <button type="button" onclick="window.loginWithOAuth('facebook')" class="flex-1 bg-[#1877F2] text-white p-3 rounded-xl shadow-sm hover:bg-[#166FE5] transition flex items-center justify-center gap-2 font-bold text-xs active:scale-95">
+                                <i class="fa-brands fa-facebook text-base"></i> فيسبوك
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>

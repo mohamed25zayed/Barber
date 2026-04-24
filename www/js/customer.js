@@ -1,6 +1,6 @@
 // اسم الملف: customer.js
 // المسار: js/customer.js
-// الوظيفة: لوحة العميل (النسخة المتكاملة 🛡️ + إغلاق الصالون + الـ VIP + الاستكشاف 🧭 + أكواد الخصم)
+// الوظيفة: لوحة العميل (النسخة المتكاملة 🛡️ + إغلاق الصالون + الـ VIP + الاستكشاف 🧭 + أكواد الخصم + التحقق الإجباري لجوجل)
 
 (() => {
     // ==========================================
@@ -23,7 +23,7 @@
     let activeTrackingSub = null; 
     let isEligibleForFreeCut = false;
     let appliedPromo = null; 
-    let exploreTarget = null; // 🚀 حفظ بيانات الكابتن/الصالون المختار من شاشة الاستكشاف
+    let exploreTarget = null;
 
     // ==========================================
     // 🛡️ 2. دوال الحماية والمساعدة المدمجة
@@ -86,49 +86,115 @@
     });
 
     // ==========================================
-    // 🚀 3. التهيئة وبدء التشغيل
+    // 🚀 3. التهيئة وبدء التشغيل (معالجة الدخول بجوجل)
     // ==========================================
     document.addEventListener('DOMContentLoaded', async () => {
-        if (typeof supabaseClient !== 'undefined') {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (!session) return window.location.replace('../index.html');
+        window.showLoader();
 
-            const { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', session.user.id).single();
-            if (profile?.role !== 'customer') return window.location.replace('../index.html');
+        if (typeof supabaseClient === 'undefined') return;
 
-            // 🚀 التحقق من تفعيل ميزة حجز الصالونات من الإدارة
-            const { data: appSettings } = await supabaseClient.from('app_settings').select('is_salon_booking_active').eq('id', 1).maybeSingle();
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        
+        if (user) {
+            const { data: profile, error } = await supabaseClient.from('profiles').select('full_name, phone, role').eq('id', user.id).maybeSingle();
             
-            if (appSettings && appSettings.is_salon_booking_active === false) {
-                const salonLabel = document.getElementById('salon-booking-label');
-                const salonRadio = document.getElementById('salon-booking-radio');
-                const salonCard = document.getElementById('salon-booking-card');
-                const salonBadge = document.getElementById('salon-booking-badge');
-                
-                if(salonRadio) salonRadio.disabled = true;
-                if(salonLabel) {
-                    salonLabel.classList.remove('cursor-pointer', 'active:scale-[0.98]');
-                    salonLabel.classList.add('cursor-not-allowed', 'opacity-60');
-                    salonLabel.style.pointerEvents = 'none'; 
+            // 1. التحقق من اكتمال البيانات (لو مسجل بجوجل ومفيش رقم)
+            if (error || !profile || !profile.phone || profile.phone.trim() === '') {
+                window.hideLoader();
+                const modal = document.getElementById('complete-profile-modal');
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
                 }
-                if(salonCard) {
-                    salonCard.classList.remove('hover:shadow-md');
-                    salonCard.classList.add('bg-gray-50');
-                }
-                if(salonBadge) {
-                    salonBadge.innerText = 'قريباً 🚀';
-                    salonBadge.className = 'absolute top-0 right-0 bg-amber-500 text-gray-900 text-[10px] px-3 py-1.5 rounded-bl-2xl rounded-tr-[1.8rem] font-black shadow-sm border-b border-l border-amber-600';
-                }
-            }
+            } else {
+                // 2. البيانات كاملة -> نشغل التطبيق
+                const firstName = profile.full_name ? profile.full_name.split(' ')[0] : 'عميلنا';
+                const welcomeMsg = document.getElementById('welcome-msg');
+                if(welcomeMsg) welcomeMsg.innerText = `أهلاً بك يا ${firstName} 👋`;
 
-            injectChatModal(); 
-            loadLoyaltyProgress();
-            loadPlatformServices();
-            checkActiveOrders(); 
-            setupStarsInteraction(); 
-            autoFetchLocation(); 
+                // التحقق من تفعيل ميزة الصالونات
+                const { data: appSettings } = await supabaseClient.from('app_settings').select('is_salon_booking_active').eq('id', 1).maybeSingle();
+                
+                if (appSettings && appSettings.is_salon_booking_active === false) {
+                    const salonLabel = document.getElementById('salon-booking-label');
+                    const salonRadio = document.getElementById('salon-booking-radio');
+                    const salonCard = document.getElementById('salon-booking-card');
+                    const salonBadge = document.getElementById('salon-booking-badge');
+                    
+                    if(salonRadio) salonRadio.disabled = true;
+                    if(salonLabel) {
+                        salonLabel.classList.remove('cursor-pointer', 'active:scale-[0.98]');
+                        salonLabel.classList.add('cursor-not-allowed', 'opacity-60');
+                        salonLabel.style.pointerEvents = 'none'; 
+                    }
+                    if(salonCard) {
+                        salonCard.classList.remove('hover:shadow-md');
+                        salonCard.classList.add('bg-gray-50');
+                    }
+                    if(salonBadge) {
+                        salonBadge.innerText = 'قريباً 🚀';
+                        salonBadge.className = 'absolute top-0 right-0 bg-amber-500 text-gray-900 text-[10px] px-3 py-1.5 rounded-bl-2xl rounded-tr-[1.8rem] font-black shadow-sm border-b border-l border-amber-600';
+                    }
+                }
+
+                injectChatModal(); 
+                loadLoyaltyProgress();
+                await loadPlatformServices();
+                checkActiveOrders(); 
+                setupStarsInteraction(); 
+                autoFetchLocation(); 
+                
+                window.hideLoader();
+            }
+        } else {
+            window.location.replace('../index.html');
         }
     });
+
+    window.saveMissingProfileData = async function() {
+        let phone = document.getElementById('complete-phone').value.trim();
+        phone = phone.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/\D/g, '');
+
+        if (phone.length < 10) {
+            if(typeof window.playSound === 'function') window.playSound('error');
+            return window.showToast('يرجى إدخال رقم هاتف صحيح!');
+        }
+
+        window.showLoader();
+        const { data: { user } } = await supabaseClient.auth.getUser();
+
+        const { error } = await supabaseClient.from('profiles').upsert([{
+            id: user.id,
+            phone: phone,
+            role: 'customer',
+            status: 'active',
+            full_name: user.user_metadata?.full_name || 'عميل مميز'
+        }], { onConflict: 'id' });
+
+        if (error) {
+            window.hideLoader();
+            if(typeof window.playSound === 'function') window.playSound('error');
+            if (error.message.includes('unique') || error.message.includes('duplicate')) {
+                window.showToast('رقم الهاتف هذا مسجل بحساب آخر بالفعل!');
+            } else {
+                window.showToast('حدث خطأ أثناء الحفظ. يرجى المحاولة لاحقاً.');
+            }
+        } else {
+            window.hideLoader();
+            if(typeof window.playSound === 'function') window.playSound('success');
+            window.showToast('تم استكمال البيانات بنجاح! 🎉');
+            
+            const modal = document.getElementById('complete-profile-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+            
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
+    };
 
     // ==========================================
     // 🌍 4. نظام الاستكشاف (Explore Feed)
@@ -650,7 +716,7 @@
         
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         if(viewId === 'customer-home') document.getElementById('c-nav-home')?.classList.add('active');
-        if(viewId === 'customer-explore') document.getElementById('c-nav-explore')?.classList.add('active'); // 🚀 زر الاستكشاف
+        if(viewId === 'customer-explore') document.getElementById('c-nav-explore')?.classList.add('active'); 
         if(viewId === 'customer-tracking') document.getElementById('c-nav-track')?.classList.add('active');
         if(viewId === 'customer-history') document.getElementById('c-nav-history')?.classList.add('active');
         
@@ -771,7 +837,7 @@
         });
     }
 
-    async function loadPlatformServices() {
+    window.loadPlatformServices = async function() {
         const offersContainer = document.getElementById('offers-container');
         const basicsContainer = document.getElementById('basics-container');
         if(!offersContainer || !basicsContainer) return;
@@ -1871,7 +1937,8 @@ async function updateWalletDisplay() {
         .single();
     
     if (profile) {
-        document.getElementById('wallet-display').innerText = `${profile.wallet_balance.toLocaleString()} ج.م`;
+        const walletEl = document.getElementById('wallet-display');
+        if (walletEl) walletEl.innerText = `${profile.wallet_balance.toLocaleString()} ج.م`;
     }
 }
 
@@ -1890,22 +1957,28 @@ window.submitChargeRequest = async function() {
     window.hideLoader();
     if (!error) {
         window.showToast("تم إرسال طلبك! سيتم مراجعة التحويل وإضافة الرصيد فوراً ✅");
-        closeModal('charge-wallet-modal');
+        if(typeof window.closeModal === 'function') window.closeModal('charge-wallet-modal');
     } else {
         window.showToast("حدث خطأ، حاول مرة أخرى ❌");
     }
 };
 
-// تشغيل جلب الرصيد عند فتح الصفحة
-document.addEventListener('DOMContentLoaded', updateWalletDisplay);
+// تشغيل جلب الرصيد وتفعيل المراقبة بأمان
+document.addEventListener('DOMContentLoaded', async () => {
+    if (typeof supabaseClient === 'undefined') return;
+    
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if (user) {
+        updateWalletDisplay();
 
-// الاشتراك في تغييرات جدول الـ profiles للمستخدم الحالي
-supabaseClient
-  .channel('wallet-updates')
-  .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, payload => {
-      if (payload.new.id === state.userId) {
-          document.getElementById('wallet-display').innerText = `${payload.new.wallet_balance.toLocaleString()} ج.م`;
-          window.showToast("تم تحديث رصيد محفظتك! 💰");
-      }
-  })
-  .subscribe();
+        // الاشتراك في تغييرات جدول الـ profiles للمستخدم الحالي
+        supabaseClient
+          .channel('wallet-updates')
+          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` }, payload => {
+              const walletEl = document.getElementById('wallet-display');
+              if (walletEl) walletEl.innerText = `${payload.new.wallet_balance.toLocaleString()} ج.م`;
+              if(typeof window.showToast === 'function') window.showToast("تم تحديث رصيد محفظتك! 💰");
+          })
+          .subscribe();
+    }
+});

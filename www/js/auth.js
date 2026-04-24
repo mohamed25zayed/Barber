@@ -1,7 +1,7 @@
 // اسم الملف: auth.js
 // المسار: js/auth.js
-// الوظيفة: إدارة المصادقة، التسجيل، الدخول التلقائي، ونسيان كلمة المرور 
-// 🛡️ التحديث الأمني (V2): الاعتماد بالكامل على RPC لمنع تسريب الأكواد وتأمين جدول otp_codes مع نظام Deep Linking و Upsert
+// الوظيفة: إدارة المصادقة، التسجيل، الدخول التلقائي، نسيان كلمة المرور، والدخول عبر الشبكات الاجتماعية
+// 🛡️ التحديث الأمني (V3): توحيد صيغ الأرقام (Normalization)، تخطي اختياري للـ OTP، ودعم Google & Facebook
 
 (() => {
     // ==========================================
@@ -10,10 +10,24 @@
 
     let resendInterval; // متغير لحفظ حالة عداد إعادة إرسال الكود
 
-    // دالة للتحقق من صحة الرقم الدولي برمجياً
+    // دالة لتحويل الأرقام العربية إلى إنجليزية
+    function convertArabicToEnglishNumbers(str) {
+        return str.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+    }
+
+    // دالة لتوحيد وتطهير رقم الهاتف (تمنع ثغرة الـ OTP)
+    function normalizePhone(phone) {
+        if (!phone) return '';
+        let cleaned = convertArabicToEnglishNumbers(phone);
+        cleaned = cleaned.replace(/\D/g, ''); // إزالة أي شيء غير الأرقام (+، مسافات، أقواس)
+        // لو الرقم بيبدأ بـ 20 (مفتاح مصر) ممكن نشيله لتوحيد الفورمات، بس الأفضل نخليه زي ما هو المهم يكون أرقام بس
+        return cleaned;
+    }
+
+    // دالة للتحقق من صحة الرقم برمجياً
     function isValidPhoneNumber(phone) {
-        const regex = /^\+?[0-9]{8,15}$/;
-        return regex.test(phone);
+        const cleaned = normalizePhone(phone);
+        return cleaned.length >= 10 && cleaned.length <= 15;
     }
 
     // دالة توجيه المستخدم حسب الصلاحية
@@ -150,17 +164,17 @@
     };
 
     window.requestTelegramOTP = async function(isResend = false) {
-        const phoneInput = document.getElementById('login-phone').value.trim();
+        let phoneInput = document.getElementById('login-phone').value.trim();
+        phoneInput = normalizePhone(phoneInput); // توحيد الرقم
+
         const passInput = document.getElementById('login-pass').value.trim();
         const isRegActive = !document.getElementById('register-fields').classList.contains('hidden');
 
-        // 1. التحقق من صحة الرقم
         if (!isValidPhoneNumber(phoneInput)) {
             if(typeof window.playSound === 'function') window.playSound('error');
             return window.showToast("يرجى إدخال رقم هاتف صحيح");
         }
 
-        // 2. التحقق من ملء كل الخانات قبل إرسال الكود
         if (isRegActive) {
             const fullName = document.getElementById('reg-fullname').value.trim();
             const roleEl = document.querySelector('input[name="role"]:checked');
@@ -180,12 +194,10 @@
         window.showLoader(100, null);
         
         try {
-            // توليد كود جلسة فريد للربط مع تليجرام
             const sessionId = crypto.randomUUID();
 
-            // 🛡️ تحديث أمني: إرسال الطلب للسيرفر لتوليد وحفظ الكود مع الـ sessionId
             const { error } = await supabaseClient.rpc('generate_otp', { 
-                p_phone: phoneInput,
+                p_phone: phoneInput, // إرسال الرقم الموحد
                 p_session: sessionId 
             });
 
@@ -198,8 +210,9 @@
             
             if(otpSection) {
                 otpSection.classList.remove('hidden');
+                // إضافة واجهة الـ OTP + زرار التخطي
                 otpSection.innerHTML = `
-                    <div class="p-4 bg-amber-50 rounded-xl border border-amber-100 mt-4 text-center animate-fade-in">
+                    <div class="p-4 bg-amber-50 rounded-xl border border-amber-100 mt-4 text-center animate-[fadeIn_0.3s_ease-out]">
                         <p class="text-sm text-gray-800 mb-3 font-bold">تم تجهيز الكود بنجاح! 🚀</p>
                         
                         <a href="https://t.me/barberhome_otp_bot?start=${sessionId}" target="_blank" class="inline-block bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-xl font-bold text-sm mb-4 w-full shadow-md transition-all">
@@ -208,8 +221,17 @@
                         
                         <input type="number" id="otp-input" placeholder="أدخل كود التفعيل هنا (4 أرقام)" class="w-full bg-white border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-amber-500 focus:border-amber-500 block p-3 text-center tracking-widest font-bold mb-3" maxlength="4">
                         
-                        <button onclick="window.verifyOTPAndProceed()" class="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl py-3 text-sm font-bold shadow-md transition-all mb-2">
+                        <button onclick="window.verifyOTPAndProceed()" class="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl py-3 text-sm font-bold shadow-md transition-all mb-4">
                             تأكيد الكود وإنشاء الحساب ✅
+                        </button>
+
+                        <div class="border-t border-amber-200 mb-4 mx-2"></div>
+                        
+                        <p class="text-[10px] text-red-500 font-black mb-3 leading-relaxed">
+                            ⚠️ تنبيه: يمكنك تخطي التحقق، ولكنك مسؤول بالكامل عن إدخال رقم صحيح، الكابتن سيتواصل معك من خلاله فقط.
+                        </p>
+                        <button onclick="window.skipOTPAndRegister()" class="w-full bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-xl py-2.5 text-xs font-bold shadow-sm transition-all mb-2">
+                            تخطي التحقق وإنشاء الحساب ⏭️
                         </button>
 
                         <button id="resend-otp-btn" onclick="window.resendTelegramOTP()" class="text-gray-500 text-xs font-bold w-full mt-2 transition-all p-2" disabled>
@@ -221,7 +243,6 @@
             }
             if(submitBtn) submitBtn.classList.add('hidden');
             
-            // الفتح التلقائي لغير الآيفون
             if(!isResend) {
                 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
                 if(!isIOS) {
@@ -239,7 +260,9 @@
     };
 
     window.verifyOTPAndProceed = async function() {
-        const phoneInput = document.getElementById('login-phone').value.trim();
+        let phoneInput = document.getElementById('login-phone').value.trim();
+        phoneInput = normalizePhone(phoneInput);
+        
         const userOtpInput = document.getElementById('otp-input')?.value.trim();
 
         if (!userOtpInput) {
@@ -247,14 +270,11 @@
             return window.showToast("يرجى إدخال الكود الذي وصلك على تليجرام");
         }
 
-        if (!phoneInput) {
-            return window.showToast("حدث خطأ: رقم الهاتف غير موجود، يرجى كتابته مرة أخرى.");
-        }
+        if (!phoneInput) return window.showToast("حدث خطأ: رقم الهاتف مفقود.");
 
         window.showLoader(100, null);
 
         try {
-            // 🛡️ تحديث أمني: إرسال الكود للسيرفر لمطابقته (بدون قراءة الداتا في المتصفح)
             const { data: isValid, error } = await supabaseClient.rpc('verify_otp', { 
                 p_phone: phoneInput, 
                 p_otp: userOtpInput 
@@ -265,9 +285,7 @@
             if (isValid) {
                 if(typeof window.playSound === 'function') window.playSound('success');
                 window.showToast("تم تأكيد رقم الهاتف بنجاح! ✅");
-                
                 window.hideLoader();
-                // السيرفر بيمسح الكود لوحده لو كان صح، بنكمل الدخول مباشرة
                 await window.handleAuthSubmit(true);
             } else {
                 window.hideLoader();
@@ -277,7 +295,13 @@
         } catch(e) {
             window.hideLoader();
             window.showToast("حدث خطأ أثناء التحقق من الكود.");
-            console.error('OTP Verification Error:', e);
+        }
+    };
+
+    // دالة تخطي الـ OTP
+    window.skipOTPAndRegister = function() {
+        if(confirm("تأكيد: هل أنت متأكد من صحة رقم هاتفك؟ (سيتم التواصل معك عبر هذا الرقم حصراً)")) {
+            window.handleAuthSubmit(true); // نمرر true كأنه تم التحقق
         }
     };
 
@@ -289,7 +313,9 @@
             return window.showToast('خطأ: لم يتم الاتصال بقاعدة البيانات!');
         }
 
-        const phoneInput = document.getElementById('login-phone').value.trim();
+        let phoneInput = document.getElementById('login-phone').value.trim();
+        phoneInput = normalizePhone(phoneInput); // توحيد الرقم لتجنب المشاكل
+
         const passInput = document.getElementById('login-pass').value.trim();
         const isRegActive = !document.getElementById('register-fields').classList.contains('hidden');
 
@@ -302,7 +328,7 @@
             // --- إنشاء حساب جديد ---
             if (!isPhoneVerified) {
                 if(typeof window.playSound === 'function') window.playSound('error');
-                return window.showToast("يرجى الضغط على زر 'طلب كود التفعيل' وتأكيد رقمك أولاً.");
+                return window.showToast("يرجى الضغط على زر 'طلب كود التفعيل' لتأكيد رقمك أو تخطيه.");
             }
 
             const fullName = document.getElementById('reg-fullname').value.trim();
@@ -319,9 +345,7 @@
                     password: passInput,
                 });
 
-                // ⬇️ هنا تم إضافة كود طباعة الخطأ في الـ Console ⬇️
                 if (authError) {
-                    console.error("الخطأ الحقيقي من السيرفر:", authError); // طباعة الخطأ لمعرفة السبب
                     window.hideLoader();
                     if (authError.message.includes('already registered') || authError.message.includes('User already exists')) {
                         return window.showToast('رقم الهاتف مسجل بالفعل، يرجى تسجيل الدخول.');
@@ -339,7 +363,6 @@
                     }
                 }
 
-                // 🛠️ الحل الجذري: استخدام upsert لتحديث الصف الذي أنشأه الـ Trigger (إن وجد)
                 const { error: profileError } = await supabaseClient
                     .from('profiles')
                     .upsert([
@@ -384,7 +407,6 @@
             } catch(e) {
                 window.hideLoader();
                 window.showToast('حدث خطأ غير متوقع أثناء التسجيل.');
-                console.error(e);
             }
 
         } else {
@@ -432,20 +454,41 @@
     };
 
     // ==========================================
-    // 🔄 6. دوال استعادة كلمة المرور
+    // 🌐 6. تسجيل الدخول عبر Google & Facebook
+    // ==========================================
+    window.loginWithOAuth = async function(provider) {
+        window.showLoader();
+        try {
+            const { data, error } = await supabaseClient.auth.signInWithOAuth({
+                provider: provider,
+                options: {
+                    // سيتم إعادة التوجيه لصفحة العميل (لو محتاج رقم تليفونه هتعمله Popup هناك مستقبلاً)
+                    redirectTo: window.location.origin + '/pages/customer.html' 
+                }
+            });
+
+            if(error) throw error;
+        } catch (err) {
+            window.hideLoader();
+            window.showToast("حدث خطأ أثناء محاولة الاتصال بـ " + provider);
+            console.error("OAuth Error:", err);
+        }
+    };
+
+    // ==========================================
+    // 🔄 7. دوال استعادة كلمة المرور
     // ==========================================
     window.requestPasswordResetOTP = async function() {
-        const phoneInput = document.getElementById('reset-phone').value.trim();
+        let phoneInput = document.getElementById('reset-phone').value.trim();
+        phoneInput = normalizePhone(phoneInput);
         
         if (!isValidPhoneNumber(phoneInput)) return window.showToast("يرجى إدخال رقم هاتف صحيح");
 
         window.showLoader(100, null);
 
         try {
-            // توليد كود جلسة فريد
             const sessionId = crypto.randomUUID();
 
-            // 🛡️ التحديث الأمني: مناداة السيرفر لتوليد الكود مع الـ sessionId
             const { error } = await supabaseClient.rpc('generate_otp', { 
                 p_phone: phoneInput,
                 p_session: sessionId
@@ -465,12 +508,13 @@
         } catch(e) {
             window.hideLoader();
             window.showToast("حدث خطأ، يرجى المحاولة لاحقاً.");
-            console.error('Password Reset OTP Error:', e);
         }
     };
 
     window.submitNewPassword = async function() {
-        const phone = document.getElementById('reset-phone').value.trim();
+        let phone = document.getElementById('reset-phone').value.trim();
+        phone = normalizePhone(phone);
+        
         const otp = document.getElementById('reset-otp').value.trim();
         const newPassword = document.getElementById('reset-new-pass').value.trim();
 
@@ -480,7 +524,6 @@
         window.showLoader(100, null);
 
         try {
-            // 🛡️ التحقق الأمني من الكود الأول قبل تفعيل الباسورد الجديد
             const { data: isValid, error: otpError } = await supabaseClient.rpc('verify_otp', { 
                 p_phone: phone, 
                 p_otp: otp 
@@ -492,7 +535,6 @@
                 return window.showToast('الكود خاطئ، يرجى التأكد من الرقم والمحاولة مرة أخرى ❌');
             }
 
-            // لو الكود صح، نكلم الدالة الخاصة بتغيير الباسورد
             const { data, error } = await supabaseClient.functions.invoke('reset-password', {
                 body: { phone: phone, otp: otp, newPassword: newPassword }
             });

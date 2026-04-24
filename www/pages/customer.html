@@ -18,7 +18,7 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#111827">
+    <meta name="theme-color" content="#ffffff">
     <link rel="apple-touch-icon" href="/assets/android/mipmap-hdpi/icon.png">
     <link rel="icon" type="image/png" href="/assets/android/mipmap-hdpi/icon.png">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -48,56 +48,56 @@
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans selection:bg-amber-100">
-    <div class="bg-gray-900 px-5 py-4 rounded-2xl shadow-lg border border-gray-800 flex items-center justify-between mb-6 relative overflow-hidden">
-    <div class="absolute right-0 top-0 w-32 h-full bg-gradient-to-l from-amber-500/10 to-transparent pointer-events-none"></div>
-
-    <div class="relative z-10">
-        <p class="text-gray-400 text-[11px] font-bold mb-0.5 flex items-center gap-1.5">
-            <i class="fa-solid fa-wallet text-amber-500"></i> الرصيد المتاح
-        </p>
-        <h2 id="wallet-display" class="text-2xl font-black text-white tracking-tight">0.00 <span class="text-sm text-amber-500 font-bold">ج.م</span></h2>
-    </div>
-
-    <button onclick="openModal('charge-wallet-modal')" class="relative z-10 bg-amber-500 hover:bg-amber-400 text-gray-900 px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 shadow-md hover:shadow-amber-500/20 active:scale-95">
-        <i class="fa-solid fa-plus text-[10px]"></i> شحن
-    </button>
-</div>
-
-<div id="charge-wallet-modal" class="fixed inset-0 bg-gray-900/90 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
-    <div class="bg-white rounded-3xl w-full max-w-sm overflow-hidden animate-slide-up shadow-2xl">
-        
-        <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-            <h3 class="text-lg font-black text-gray-900 flex items-center gap-2">
-                <i class="fa-solid fa-bolt text-amber-500"></i> شحن الرصيد
-            </h3>
-            <button onclick="closeModal('charge-wallet-modal')" class="text-gray-400 hover:text-red-500 transition-colors w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm border border-gray-100">
-                <i class="fa-solid fa-times"></i>
-            </button>
-        </div>
-
-        <div class="p-6">
-            <p class="text-xs text-gray-500 mb-3 text-right font-bold">1. حول المبلغ على حساب انستاباي التالي:</p>
-            
-            <div class="bg-gray-50 border border-gray-200 p-3.5 rounded-xl flex items-center justify-between mb-6 group hover:border-amber-500/50 transition-colors cursor-pointer" onclick="payWithInstaPay()">
-                <input type="text" id="admin-instapay-address" value="barberhome@instapay" readonly class="bg-transparent font-black text-gray-800 text-sm tracking-wide w-full outline-none cursor-pointer pointer-events-none">
-                <div class="bg-white text-amber-600 font-bold text-[10px] px-3 py-1.5 rounded-lg shadow-sm group-hover:bg-amber-50 transition-colors flex items-center gap-1 shrink-0">
-                    <i class="fa-regular fa-copy"></i> نسخ
+    
+    <div id="charge-wallet-modal" class="fixed inset-0 bg-gray-900/90 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-sm overflow-hidden animate-slide-up shadow-2xl">
+            <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                <h3 class="text-lg font-black text-gray-900 flex items-center gap-2">
+                    <i class="fa-solid fa-bolt text-amber-500"></i> شحن الرصيد
+                </h3>
+                <button onclick="closeModal('charge-wallet-modal')" class="text-gray-400 hover:text-red-500 transition-colors w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm border border-gray-100">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <p class="text-xs text-gray-500 mb-3 text-right font-bold">1. حول المبلغ على حساب انستاباي التالي:</p>
+                <div class="bg-gray-50 border border-gray-200 p-3.5 rounded-xl flex items-center justify-between mb-6 group hover:border-amber-500/50 transition-colors cursor-pointer" onclick="payWithInstaPay()">
+                    <input type="text" id="admin-instapay-address" value="barberhome@instapay" readonly class="bg-transparent font-black text-gray-800 text-sm tracking-wide w-full outline-none cursor-pointer pointer-events-none">
+                    <div class="bg-white text-amber-600 font-bold text-[10px] px-3 py-1.5 rounded-lg shadow-sm group-hover:bg-amber-50 transition-colors flex items-center gap-1 shrink-0">
+                        <i class="fa-regular fa-copy"></i> نسخ
+                    </div>
                 </div>
+                <p class="text-xs text-gray-500 mb-3 text-right font-bold">2. ادخل المبلغ الذي قمت بتحويله للتأكيد:</p>
+                <div class="relative mb-6">
+                    <input type="number" id="charge-amount" placeholder="مثال: 500" class="w-full p-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-500/10 outline-none text-center font-black text-2xl text-gray-900 transition-all placeholder-gray-300">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">ج.م</span>
+                </div>
+                <button onclick="submitChargeRequest()" class="w-full bg-gray-900 text-white p-4 rounded-xl text-sm font-black hover:bg-black transition-all flex items-center justify-center gap-2 shadow-lg shadow-gray-900/20 active:scale-[0.98]">
+                    <i class="fa-solid fa-check-circle text-amber-500"></i> تأكيد إرسال الطلب
+                </button>
             </div>
-
-            <p class="text-xs text-gray-500 mb-3 text-right font-bold">2. ادخل المبلغ الذي قمت بتحويله للتأكيد:</p>
-            
-            <div class="relative mb-6">
-                <input type="number" id="charge-amount" placeholder="مثال: 500" class="w-full p-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-500/10 outline-none text-center font-black text-2xl text-gray-900 transition-all placeholder-gray-300">
-                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">ج.م</span>
-            </div>
-
-            <button onclick="submitChargeRequest()" class="w-full bg-gray-900 text-white p-4 rounded-xl text-sm font-black hover:bg-black transition-all flex items-center justify-center gap-2 shadow-lg shadow-gray-900/20 active:scale-[0.98]">
-                <i class="fa-solid fa-check-circle text-amber-500"></i> تأكيد إرسال الطلب
-            </button>
         </div>
     </div>
-</div>
+
+    <div id="complete-profile-modal" class="fixed inset-0 bg-gray-900/95 backdrop-blur-md z-[99999] hidden flex-col items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-[2.5rem] p-8 text-center shadow-2xl animate-slide-up border border-gray-100">
+            <div class="w-20 h-20 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-5 border border-amber-100 shadow-inner">
+                <i class="fa-solid fa-mobile-screen-button"></i>
+            </div>
+            <h3 class="font-black text-2xl text-gray-900 mb-2">خطوة أخيرة!</h3>
+            <p class="text-xs text-gray-500 mb-6 font-bold leading-relaxed">أهلاً بك في BarberHome. يرجى استكمال بياناتك لنتمكن من تأكيد حجوزاتك وتواصل الكباتن معك.</p>
+            <div class="space-y-4 text-right">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-2 ml-1">رقم الهاتف (ضروري جداً)</label>
+                    <input type="tel" id="complete-phone" placeholder="01xxxxxxxxx" class="premium-input bg-gray-50 text-left font-black" dir="ltr">
+                </div>
+                <button onclick="saveMissingProfileData()" class="w-full bg-gray-900 text-white p-4 rounded-xl font-black shadow-lg hover:bg-black transition active:scale-95 text-sm flex justify-center items-center gap-2 mt-4">
+                    حفظ وبدء الاستخدام <i class="fa-solid fa-arrow-left text-amber-500"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="global-loader" class="fixed inset-0 bg-white/90 z-[9999] hidden flex-col items-center justify-center backdrop-blur-md transition-all duration-300">
         <div class="relative w-16 h-16">
             <div class="absolute inset-0 border-4 border-gray-100 rounded-full"></div>
@@ -138,6 +138,23 @@
         
         <section id="customer-home" class="view active space-y-6">
             
+            <div class="bg-white p-5 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100 flex items-center justify-between relative overflow-hidden transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.09)] mb-6">
+                <div class="absolute -right-8 -top-8 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="relative z-10 flex-1">
+                    <p class="text-gray-500 text-[11px] font-bold mb-1.5 flex items-center gap-1.5">
+                        <span class="w-6 h-6 rounded-full bg-amber-50 flex items-center justify-center text-amber-500"><i class="fa-solid fa-wallet text-[10px]"></i></span>
+                        رصيد المحفظة
+                    </p>
+                    <h2 id="wallet-display" class="text-3xl font-black text-gray-900 tracking-tight">0.00 <span class="text-sm text-gray-400 font-bold ml-1">ج.م</span></h2>
+                </div>
+
+                <button onclick="openModal('charge-wallet-modal')" class="relative z-10 bg-gray-900 text-white h-12 px-5 rounded-2xl text-xs font-black transition-all flex flex-col justify-center items-center gap-1 shadow-lg shadow-gray-900/20 active:scale-95 hover:bg-black">
+                    <i class="fa-solid fa-plus text-amber-500"></i>
+                    <span>شحن</span>
+                </button>
+            </div>
+
             <div id="active-tracking-shortcut" class="hidden bg-gray-900 border border-gray-800 rounded-3xl p-5 items-center justify-between cursor-pointer shadow-lg hover:shadow-xl active:scale-[0.98] transition-all" onclick="switchCustomerView('customer-tracking')">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 bg-gray-800 text-amber-500 rounded-full flex items-center justify-center animate-pulse shadow-inner border border-gray-700">
@@ -638,23 +655,92 @@
     <script src="../js/customer.js"></script>
     
     <script>
+
+
+        // دالة تهيئة التطبيق (لا يتم استدعاؤها إلا لو البيانات كاملة)
+        async function initializeApp() {
+            if (typeof window.loadPlatformServices === 'function') {
+                await window.loadPlatformServices();
+                window.switchCustomerView('customer-home');
+            }
+            window.hideLoader();
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
+            window.showLoader(); // إظهار اللودر فوراً لمنع رؤية واجهة مكسورة
+
+            if (typeof supabaseClient === 'undefined') {
+                window.hideLoader();
+                return;
+            }
+
             const { data: { user } } = await supabaseClient.auth.getUser();
+
             if (user) {
-                const { data: profile } = await supabaseClient.from('profiles').select('full_name').eq('id', user.id).single();
-                if (profile) {
-                    const firstName = profile.full_name.split(' ')[0];
-                    document.getElementById('welcome-msg').innerText = `أهلاً بك يا ${firstName} 👋`;
+                // جلب البروفايل
+                const { data: profile, error } = await supabaseClient
+                    .from('profiles')
+                    .select('phone, full_name')
+                    .eq('id', user.id)
+                    .maybeSingle();
+
+                // التحقق: هل الحساب ينقصه رقم الهاتف (حالة جوجل)؟
+                if (!profile || !profile.phone || profile.phone.trim() === '') {
+                    window.hideLoader();
+                    // إظهار المودال الإجباري ومنع أي حركة في التطبيق
+                    const modal = document.getElementById('complete-profile-modal');
+                    if (modal) {
+                        modal.classList.remove('hidden');
+                        modal.classList.add('flex');
+                    }
+                } else {
+                    // البيانات كاملة -> الآن فقط نشغل التطبيق
+                    const firstName = profile.full_name ? profile.full_name.split(' ')[0] : 'عميلنا';
+                    const welcomeMsg = document.getElementById('welcome-msg');
+                    if(welcomeMsg) welcomeMsg.innerText = `أهلاً بك يا ${firstName} 👋`;
+
+                    initializeApp();
                 }
+            } else {
+                window.location.replace('../index.html');
             }
         });
 
+        window.saveMissingProfileData = async function() {
+            let phone = document.getElementById('complete-phone').value.trim();
+            phone = phone.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/\D/g, '');
+
+            if (phone.length < 10) {
+                if(typeof window.playSound === 'function') window.playSound('error');
+                return window.showToast('يرجى إدخال رقم هاتف صحيح!');
+            }
+
+            window.showLoader();
+            const { data: { user } } = await supabaseClient.auth.getUser();
+
+            const { error } = await supabaseClient.from('profiles').upsert([{
+                id: user.id,
+                phone: phone,
+                role: 'customer',
+                status: 'active',
+                full_name: user.user_metadata?.full_name || 'عميل مميز'
+            }], { onConflict: 'id' });
+
+            if (error) {
+                window.hideLoader();
+                if(typeof window.playSound === 'function') window.playSound('error');
+                window.showToast('خطأ: ربما هذا الرقم مسجل بحساب آخر!');
+            } else {
+                if(typeof window.playSound === 'function') window.playSound('success');
+                window.showToast('تم استكمال البيانات بنجاح! 🎉');
+                setTimeout(() => { window.location.reload(); }, 1000);
+            }
+        };
+
         // 💸 الدالة الذكية لنسخ حساب انستاباي وفتح التطبيق تلقائياً
         window.payWithInstaPay = function() {
-            // قراءة رقم الحساب من مربع النص المكتوب فيه
             const adminInstapayAccount = document.getElementById("admin-instapay-address").value; 
             
-            // النسخ الوهمي عبر إنشاء input مؤقت
             const tempInput = document.createElement("input");
             tempInput.value = adminInstapayAccount;
             document.body.appendChild(tempInput);
@@ -665,17 +751,111 @@
             if(typeof window.playSound === 'function') window.playSound('success');
             window.showToast("تم نسخ الحساب! قم بلصقه لإرسال المبلغ.");
 
-            // الانتظار ثانية ونصف حتى يقرأ العميل رسالة النجاح، ثم فتح التطبيق
             setTimeout(() => {
                 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
                 if (!isIOS) {
-                    // كود Android Intent لفتح تطبيق انستاباي إجبارياً
                     window.location.href = "intent://#Intent;package=com.egyptianbanks.instapay;end";
                 } else {
                     window.showToast("افتح تطبيق انستاباي من هاتفك الآن والصق الحساب.");
                 }
             }, 1500);
         };
+
+
+        
     </script>
+    <script>
+    // دالة تهيئة التطبيق - لا تستدعى إلا إذا كان الهاتف موجوداً
+    async function startBarberHomeApp() {
+        try {
+            // استدعاء الوظائف من customer.js يدوياً وبالترتيب
+            if (typeof window.loadPlatformServices === 'function') {
+                await window.loadPlatformServices();
+            }
+            // إظهار القسم الرئيسي للعميل
+            if (typeof window.switchCustomerView === 'function') {
+                window.switchCustomerView('customer-home');
+            }
+            window.hideLoader();
+        } catch (e) {
+            console.error("App Initialization Error:", e);
+            window.hideLoader();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        window.showLoader(); // قفل الشاشة فوراً باللودر
+
+        if (typeof supabaseClient === 'undefined') {
+            window.showToast("خطأ في الاتصال بالسيرفر");
+            return;
+        }
+
+        const { data: { user } } = await supabaseClient.auth.getUser();
+
+        if (user) {
+            // جلب البروفايل للتحقق من الهاتف
+            const { data: profile, error } = await supabaseClient
+                .from('profiles')
+                .select('phone, full_name')
+                .eq('id', user.id)
+                .maybeSingle();
+
+            // 🚩 التحقق الحاسم: لو مفيش رقم هاتف (حالة جوجل)
+            if (!profile || !profile.phone || profile.phone.trim() === '') {
+                window.hideLoader();
+                // إظهار المودال الإجباري ومنع التفاعل مع الخلفية
+                const modal = document.getElementById('complete-profile-modal');
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                }
+            } else {
+                // ✅ البيانات كاملة -> تشغيل التطبيق بأمان
+                const welcomeMsg = document.getElementById('welcome-msg');
+                if(welcomeMsg) {
+                    const firstName = profile.full_name ? profile.full_name.split(' ')[0] : 'عميلنا';
+                    welcomeMsg.innerText = `أهلاً بك يا ${firstName} 👋`;
+                }
+                
+                // تشغيل اللوجيك الخاص بـ customer.js الآن فقط
+                startBarberHomeApp();
+            }
+        } else {
+            window.location.replace('../index.html');
+        }
+    });
+
+    // دالة الحفظ مع إعادة إنعاش التطبيق
+    window.saveMissingProfileData = async function() {
+        let phone = document.getElementById('complete-phone').value.trim();
+        phone = phone.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/\D/g, '');
+
+        if (phone.length < 10) {
+            if(typeof window.playSound === 'function') window.playSound('error');
+            return window.showToast('يرجى إدخال رقم هاتف صحيح!');
+        }
+
+        window.showLoader();
+        const { data: { user } } = await supabaseClient.auth.getUser();
+
+        const { error } = await supabaseClient.from('profiles').upsert([{
+            id: user.id,
+            phone: phone,
+            role: 'customer',
+            status: 'active',
+            full_name: user.user_metadata?.full_name || 'عميل مميز'
+        }], { onConflict: 'id' });
+
+        if (error) {
+            window.hideLoader();
+            window.showToast('عفواً، هذا الرقم مسجل مسبقاً بحساب آخر');
+        } else {
+            window.showToast('تم الحفظ! جاري فتح التطبيق... 🎉');
+            // ريفريش كامل لضمان نظافة الحالة (State)
+            setTimeout(() => { window.location.reload(); }, 1000);
+        }
+    };
+</script>
 </body>
 </html>
