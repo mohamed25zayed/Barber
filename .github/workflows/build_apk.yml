@@ -14,7 +14,7 @@ jobs:
         with:
           node-version: '22'
 
-      - name: set up JDK 21 # تم التحديث لـ 21 لحل مشكلة الـ Compilation
+      - name: set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
@@ -25,10 +25,17 @@ jobs:
           npm install
           npm install @capacitor/android@latest
 
+      - name: Fix Android Resource Files
+        run: |
+          # إضافة القيمة الناقصة لملف strings.xml برمجياً لحل مشكلة Build Failure
+          STRINGS_FILE="android/app/src/main/res/values/strings.xml"
+          if [ -f "$STRINGS_FILE" ]; then
+            sed -i '/<\/resources>/i \    <string name="title_activity_main">MainActivity<\/string>' $STRINGS_FILE
+          fi
+
       - name: Sync Android
         run: |
           chmod +x ./node_modules/.bin/cap
-          # ضبط الـ App ID والـ Name يدوياً للسيرفر للتأكد
           npx cap config set appId "com.barberhome.app"
           npx cap config set appName "BarberHome"
           npx cap sync android
@@ -66,7 +73,7 @@ jobs:
       - name: Build iOS Project
         run: |
           chmod +x ./node_modules/.bin/cap
-          npx cap config set appId "com.barberhome.app"
-          npx cap config set appName "BarberHome"
+          # تهيئة ملف capacitor.config.json للسيرفر
+          echo '{"appId": "com.barberhome.app", "appName": "BarberHome", "webDir": "www"}' > capacitor.config.json
           npx cap add ios || true
           npx cap sync ios
