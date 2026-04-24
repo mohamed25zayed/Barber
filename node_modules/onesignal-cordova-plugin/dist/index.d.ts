@@ -1,0 +1,717 @@
+declare class Debug {
+    /**
+     * Enable logging to help debug if you run into an issue setting up OneSignal.
+     * @param  {LogLevel} logLevel - Sets the logging level to print to the Android LogCat log or Xcode log.
+     * @returns void
+     */
+    setLogLevel(logLevel: LogLevel): void;
+    /**
+     * Enable logging to help debug if you run into an issue setting up OneSignal.
+     * @param  {LogLevel} visualLogLevel - Sets the logging level to show as alert dialogs.
+     * @returns void
+     */
+    setAlertLevel(visualLogLevel: LogLevel): void;
+}
+
+export declare type InAppMessageActionUrlType = 'browser' | 'webview' | 'replacement';
+
+export declare interface InAppMessageClickEvent {
+    message: OSInAppMessage;
+    result: InAppMessageClickResult;
+}
+
+export declare interface InAppMessageClickResult {
+    closingMessage: boolean;
+    actionId?: string;
+    url?: string;
+    urlTarget?: InAppMessageActionUrlType;
+}
+
+export declare interface InAppMessageDidDismissEvent {
+    message: OSInAppMessage;
+}
+
+export declare interface InAppMessageDidDisplayEvent {
+    message: OSInAppMessage;
+}
+
+declare type InAppMessageEventName = 'click' | 'willDisplay' | 'didDisplay' | 'willDismiss' | 'didDismiss';
+
+declare type InAppMessageEventTypeMap = {
+    click: InAppMessageClickEvent;
+    willDisplay: InAppMessageWillDisplayEvent;
+    didDisplay: InAppMessageDidDisplayEvent;
+    willDismiss: InAppMessageWillDismissEvent;
+    didDismiss: InAppMessageDidDismissEvent;
+};
+
+declare class InAppMessages {
+    private _inAppMessageClickListeners;
+    private _willDisplayInAppMessageListeners;
+    private _didDisplayInAppMessageListeners;
+    private _willDismissInAppMessageListeners;
+    private _didDismissInAppMessageListeners;
+    private _processFunctionList;
+    /**
+     * Add event listeners for In-App Message click and/or lifecycle events.
+     * @param event
+     * @param listener
+     * @returns
+     */
+    addEventListener<K extends InAppMessageEventName>(event: K, listener: (event: InAppMessageEventTypeMap[K]) => void): void;
+    /**
+     * Remove event listeners for In-App Message click and/or lifecycle events.
+     * @param event
+     * @param listener
+     * @returns
+     */
+    removeEventListener<K extends InAppMessageEventName>(event: K, listener: (obj: InAppMessageEventTypeMap[K]) => void): void;
+    /**
+     * Add a trigger for the current user. Triggers are currently explicitly used to determine whether a specific IAM should be displayed to the user.
+     * @param  {string} key
+     * @param  {string} value
+     * @returns void
+     */
+    addTrigger(key: string, value: string): void;
+    /**
+     * Add multiple triggers for the current user. Triggers are currently explicitly used to determine whether a specific IAM should be displayed to the user.
+     * @param  {[key: string]: string} triggers
+         * @returns void
+         */
+     addTriggers(triggers: {
+         [key: string]: string;
+     }): void;
+     /**
+      * Remove the trigger with the provided key from the current user.
+      * @param  {string} key
+      * @returns void
+      */
+     removeTrigger(key: string): void;
+     /**
+      * Remove multiple triggers from the current user.
+      * @param  {string[]} keys
+      * @returns void
+      */
+     removeTriggers(keys: string[]): void;
+     /**
+      * Clear all triggers from the current user.
+      * @returns void
+      */
+     clearTriggers(): void;
+     /**
+      * Set whether in-app messaging is currently paused.
+      * When set to true no IAM will be presented to the user regardless of whether they qualify for them.
+      * When set to 'false` any IAMs the user qualifies for will be presented to the user at the appropriate time.
+      * @param  {boolean} pause
+      * @returns void
+      */
+     setPaused(pause: boolean): void;
+     /**
+      * Whether in-app messaging is currently paused.
+      * @returns {Promise<boolean>}
+      */
+     getPaused(): Promise<boolean>;
+    }
+
+    export declare interface InAppMessageWillDismissEvent {
+        message: OSInAppMessage;
+    }
+
+    export declare interface InAppMessageWillDisplayEvent {
+        message: OSInAppMessage;
+    }
+
+    declare class LiveActivities {
+        /**
+         * Enter a live activity
+         * @param  {string} activityId
+         * @param  {string} token
+         * @param  {Function} onSuccess
+         * @param  {Function} onFailure
+         * @returns void
+         */
+        enter(activityId: string, token: string, onSuccess?: (data: unknown) => void, onFailure?: (data: unknown) => void): void;
+        /**
+         * Exit a live activity
+         * @param  {string} activityId
+         * @param  {Function} onSuccess
+         * @param  {Function} onFailure
+         * @returns void
+         */
+        exit(activityId: string, onSuccess?: (data: unknown) => void, onFailure?: (data: unknown) => void): void;
+        /**
+         * Indicate this device is capable of receiving pushToStart live activities for the
+         * `activityType`. The `activityType` **must** be the name of the struct conforming
+         * to `ActivityAttributes` that will be used to start the live activity.
+         *
+         * Only applies to iOS
+         *
+         * @param {string} activityType: The name of the specific `ActivityAttributes` structure tied
+         * to the live activity.
+         * @param {string} token: The activity type's pushToStart token.
+         */
+        setPushToStartToken(activityType: string, token: string): void;
+        /**
+         * Indicate this device is no longer capable of receiving pushToStart live activities
+         * for the `activityType`. The `activityType` **must** be the name of the struct conforming
+         * to `ActivityAttributes` that will be used to start the live activity.
+         *
+         * Only applies to iOS
+         *
+         * @param {string} activityType: The name of the specific `ActivityAttributes` structure tied
+         * to the live activity.
+         */
+        removePushToStartToken(activityType: string): void;
+        /**
+         * Enable the OneSignalSDK to setup the default`DefaultLiveActivityAttributes` structure,
+         * which conforms to the `OneSignalLiveActivityAttributes`. When using this function, the
+         * widget attributes are owned by the OneSignal SDK, which will allow the SDK to handle the
+         * entire lifecycle of the live activity.  All that is needed from an app-perspective is to
+         * create a Live Activity widget in a widget extension, with a `ActivityConfiguration` for
+         * `DefaultLiveActivityAttributes`. This is most useful for users that (1) only have one Live
+         * Activity widget and (2) are using a cross-platform framework and do not want to create the
+         * cross-platform <-> iOS native bindings to manage ActivityKit.
+         *
+         * Only applies to iOS
+         *
+         * @param {LiveActivitySetupOptions} options: An optional structure to provide for more granular setup options.
+         */
+        setupDefault(options?: LiveActivitySetupOptions): void;
+        /**
+         * Start a new LiveActivity that is modelled by the default`DefaultLiveActivityAttributes`
+         * structure. The `DefaultLiveActivityAttributes` is initialized with the dynamic `attributes`
+         * and `content` passed in.
+         *
+         * Only applies to iOS
+         *
+         * @param {string} activityId: The activity identifier the live activity on this device will be started
+         * and eligible to receive updates for.
+         * @param {object} attributes: A dynamic type containing the static attributes passed into `DefaultLiveActivityAttributes`.
+         * @param {object} content: A dynamic type containing the content attributes passed into `DefaultLiveActivityAttributes`.
+         */
+        startDefault(activityId: string, attributes: object, content: object): void;
+    }
+
+    /**
+     * The setup options for `OneSignal.LiveActivities.setupDefault`.
+     */
+    declare type LiveActivitySetupOptions = {
+        /**
+         * When true, OneSignal will listen for pushToStart tokens for the `OneSignalLiveActivityAttributes` structure.
+         */
+        enablePushToStart: boolean;
+        /**
+         * When true, OneSignal will listen for pushToUpdate  tokens for each start live activity that uses the
+         * `OneSignalLiveActivityAttributes` structure.
+         */
+        enablePushToUpdate: boolean;
+    };
+
+    declare class Location_2 {
+        /**
+         * Location
+         */
+        /**
+         * Prompts the user for location permissions to allow geotagging from the OneSignal dashboard.
+         * @returns void
+         */
+        requestPermission(): void;
+        /**
+         * Disable or enable location collection (defaults to enabled if your app has location permission).
+         * @param  {boolean} shared
+         * @returns void
+         */
+        setShared(shared: boolean): void;
+        /**
+         * Whether location is currently shared with OneSignal.
+         * @returns {Promise<boolean>}
+         */
+        isShared(): Promise<boolean>;
+    }
+
+    export declare enum LogLevel {
+        None = 0,
+        Fatal = 1,
+        Error = 2,
+        Warn = 3,
+        Info = 4,
+        Debug = 5,
+        Verbose = 6
+    }
+
+    export declare interface NotificationClickEvent {
+        result: NotificationClickResult;
+        notification: OSNotification;
+    }
+
+    export declare interface NotificationClickResult {
+        actionId?: string;
+        url?: string;
+    }
+
+    declare type NotificationEventName = 'click' | 'foregroundWillDisplay' | 'permissionChange';
+
+    declare type NotificationEventTypeMap = {
+        click: NotificationClickEvent;
+        foregroundWillDisplay: NotificationWillDisplayEvent;
+        permissionChange: boolean;
+    };
+
+    declare class Notifications {
+        private _permissionObserverList;
+        private _notificationClickedListeners;
+        private _notificationWillDisplayListeners;
+        private _processFunctionList;
+        private _permission?;
+        /**
+         * Sets initial permission value and adds observer for changes.
+         * This internal method is kept to support the deprecated method {@link hasPermission}.
+         */
+        _setPropertyAndObserver(): void;
+        /**
+         * @deprecated This method is deprecated. It has been replaced by {@link getPermissionAsync}.
+         */
+        hasPermission(): boolean;
+        /**
+         * Whether this app has push notification permission. Returns true if the user has accepted permissions,
+         * or if the app has ephemeral or provisional permission.
+         */
+        getPermissionAsync(): Promise<boolean>;
+        /** iOS Only.
+         * Returns the enum for the native permission of the device. It will be one of:
+         * OSNotificationPermissionNotDetermined,
+         * OSNotificationPermissionDenied,
+         * OSNotificationPermissionAuthorized,
+         * OSNotificationPermissionProvisional - only available in iOS 12,
+         * OSNotificationPermissionEphemeral - only available in iOS 14
+         *
+         * @returns {Promise<OSNotificationPermission>}
+         *
+         * */
+        permissionNative(): Promise<OSNotificationPermission>;
+        /**
+         * Prompt the user for permission to receive push notifications. This will display the native system prompt to request push notification permission.
+         * Use the fallbackToSettings parameter to prompt to open the settings app if a user has already declined push permissions.
+         *
+         *
+         * @param  {boolean} fallbackToSettings
+         * @returns {Promise<boolean>}
+         */
+        requestPermission(fallbackToSettings?: boolean): Promise<boolean>;
+        /**
+         * Whether attempting to request notification permission will show a prompt. Returns true if the device has not been prompted for push notification permission already.
+         * @returns {Promise<boolean>}
+         */
+        canRequestPermission(): Promise<boolean>;
+        /**
+         * iOS Only
+         */
+        /**
+         * Instead of having to prompt the user for permission to send them push notifications, your app can request provisional authorization.
+         *
+         * For more information: https://documentation.onesignal.com/docs/ios-customizations#provisional-push-notifications
+         *
+         * @param  {(response: boolean)=>void} handler
+         * @returns void
+         */
+        registerForProvisionalAuthorization(handler?: (response: boolean) => void): void;
+        /**
+         * Add listeners for notification events.
+         * @param event
+         * @param listener
+         * @returns
+         */
+        addEventListener<K extends NotificationEventName>(event: K, listener: (event: NotificationEventTypeMap[K]) => void): void;
+        /**
+         * Remove listeners for notification events.
+         * @param event
+         * @param listener
+         * @returns
+         */
+        removeEventListener<K extends NotificationEventName>(event: K, listener: (obj: NotificationEventTypeMap[K]) => void): void;
+        /**
+         * Removes all OneSignal notifications.
+         * @returns void
+         */
+        clearAll(): void;
+        /**
+         * Android Only
+         */
+        /**
+         * Android only.
+         * Cancels a single OneSignal notification based on its Android notification integer ID. Use instead of Android's [android.app.NotificationManager.cancel], otherwise the notification will be restored when your app is restarted.
+         * @param  {number} id - notification id to cancel
+         * @returns void
+         */
+        removeNotification(id: number): void;
+        /**
+         * Android only.
+         * Cancels a group of OneSignal notifications with the provided group key. Grouping notifications is a OneSignal concept, there is no [android.app.NotificationManager] equivalent.
+         * @param  {string} id - notification group id to cancel
+         * @returns void
+         */
+        removeGroupedNotifications(id: string): void;
+    }
+
+    export declare class NotificationWillDisplayEvent {
+        private notification;
+        constructor(displayEvent: OSNotification);
+        /**
+         * Call this to prevent OneSignal from displaying the notification automatically.
+         * This method can be called up to two times with false and then true, if processing time is needed.
+         * Typically this is only possible within a short
+         * time-frame (~30 seconds) after the notification is received on the device.
+         * @param discard an [preventDefault] set to true to dismiss the notification with no
+         * possibility of displaying it in the future.
+         */
+        preventDefault(discard?: boolean): void;
+        getNotification(): OSNotification;
+    }
+
+    declare const OneSignal: OneSignalPlugin;
+    export default OneSignal;
+
+    export declare class OneSignalPlugin {
+        User: User;
+        Debug: Debug;
+        Session: Session;
+        Location: Location_2;
+        InAppMessages: InAppMessages;
+        Notifications: Notifications;
+        LiveActivities: LiveActivities;
+        private _appID;
+        /**
+         * Initializes the OneSignal SDK. This should be called during startup of the application.
+         * @param  {string} appId
+         * @returns void
+         */
+        initialize(appId: string): void;
+        /**
+         * Login to OneSignal under the user identified by the [externalId] provided. The act of logging a user into the OneSignal SDK will switch the [user] context to that specific user.
+         * @param  {string} externalId
+         * @returns void
+         */
+        login(externalId: string): void;
+        /**
+         * Logout the user previously logged in via [login]. The [user] property now references a new device-scoped user.
+         * @param  {string} externalId
+         * @returns void
+         */
+        logout(): void;
+        /**
+         * Determines whether a user must consent to privacy prior to their user data being sent up to OneSignal. This should be set to true prior to the invocation of initialization to ensure compliance.
+         * @param  {boolean} required
+         * @returns void
+         */
+        setConsentRequired(required: boolean): void;
+        /**
+         * Indicates whether privacy consent has been granted. This field is only relevant when the application has opted into data privacy protections.
+         * @param  {boolean} granted
+         * @returns void
+         */
+        setConsentGiven(granted: boolean): void;
+    }
+
+    export declare interface OSInAppMessage {
+        messageId: string;
+    }
+
+    export declare class OSNotification {
+        body: string;
+        sound?: string;
+        title?: string;
+        launchURL?: string;
+        rawPayload: object;
+        actionButtons?: object[];
+        additionalData: object;
+        notificationId: string;
+        groupKey?: string;
+        groupMessage?: string;
+        groupedNotifications?: object[];
+        ledColor?: string;
+        priority?: number;
+        smallIcon?: string;
+        largeIcon?: string;
+        bigPicture?: string;
+        collapseId?: string;
+        fromProjectNumber?: string;
+        smallIconAccentColor?: string;
+        lockScreenVisibility?: string;
+        androidNotificationId?: number;
+        badge?: string;
+        badgeIncrement?: string;
+        category?: string;
+        threadId?: string;
+        subtitle?: string;
+        templateId?: string;
+        templateName?: string;
+        attachments?: object;
+        mutableContent?: boolean;
+        contentAvailable?: string;
+        relevanceScore?: number;
+        interruptionLevel?: string;
+        constructor(receivedEvent: ReceivedEvent);
+        /**
+         * Display the notification.
+         * @returns void
+         */
+        display(): void;
+    }
+
+    export declare enum OSNotificationPermission {
+        NotDetermined = 0,
+        Denied = 1,
+        Authorized = 2,
+        Provisional = 3,// only available in iOS 12
+        Ephemeral = 4
+    }
+
+    declare class PushSubscription_2 {
+        private _id?;
+        private _token?;
+        private _optedIn?;
+        private _subscriptionObserverList;
+        private _processFunctionList;
+        /**
+         * Sets initial Push Subscription properties and adds observer for changes.
+         * This internal method is kept to support the deprecated methods {@link id}, {@link token}, {@link optedIn}.
+         */
+        _setPropertiesAndObserver(): void;
+        /**
+         * @deprecated This method is deprecated. It has been replaced by {@link getIdAsync}.
+         */
+        get id(): string | null | undefined;
+        /**
+         * @deprecated This method is deprecated. It has been replaced by {@link getTokenAsync}.
+         */
+        get token(): string | null | undefined;
+        /**
+         * @deprecated This method is deprecated. It has been replaced by {@link getOptedInAsync}.
+         */
+        get optedIn(): boolean;
+        /**
+         * The readonly push subscription ID.
+         * @returns {Promise<string | null>}
+         */
+        getIdAsync(): Promise<string | null>;
+        /**
+         * The readonly push token.
+         * @returns {Promise<string | null>}
+         */
+        getTokenAsync(): Promise<string | null>;
+        /**
+         * Gets a boolean value indicating whether the current user is opted in to push notifications.
+         * This returns true when the app has notifications permission and optOut() is NOT called.
+         * Note: Does not take into account the existence of the subscription ID and push token.
+         * This boolean may return true but push notifications may still not be received by the user.
+         * @returns {Promise<boolean>}
+         */
+        getOptedInAsync(): Promise<boolean>;
+        /**
+         * Add a callback that fires when the OneSignal push subscription state changes.
+         * @param  {(event: PushSubscriptionChangedState)=>void} listener
+         * @returns void
+         */
+        addEventListener(event: 'change', listener: (event: PushSubscriptionChangedState) => void): void;
+        /**
+         * Remove a push subscription observer that has been previously added.
+         * @param  {(event: PushSubscriptionChangedState)=>void} listener
+         * @returns void
+         */
+        removeEventListener(event: 'change', listener: (event: PushSubscriptionChangedState) => void): void;
+        /**
+         * Call this method to receive push notifications on the device or to resume receiving of push notifications after calling optOut. If needed, this method will prompt the user for push notifications permission.
+         * @returns void
+         */
+        optIn(): void;
+        /**
+         * If at any point you want the user to stop receiving push notifications on the current device (regardless of system-level permission status), you can call this method to opt out.
+         * @returns void
+         */
+        optOut(): void;
+    }
+
+    export declare interface PushSubscriptionChangedState {
+        previous: PushSubscriptionState;
+        current: PushSubscriptionState;
+    }
+
+    export declare interface PushSubscriptionState {
+        id?: string;
+        token?: string;
+        optedIn: boolean;
+    }
+
+    declare type ReceivedEvent = Omit<OSNotification, 'display' | 'rawPayload'> & {
+        rawPayload: string | object;
+    };
+
+    declare class Session {
+        /**
+         * Outcomes
+         */
+        /**
+         * Add an outcome with the provided name, captured against the current session.
+         * @param  {string} name
+         * @returns void
+         */
+        addOutcome(name: string): void;
+        /**
+         * Add a unique outcome with the provided name, captured against the current session.
+         * @param  {string} name
+         * @returns void
+         */
+        addUniqueOutcome(name: string): void;
+        /**
+         * Add an outcome with the provided name and value, captured against the current session.
+         * @param  {string} name
+         * @param  {number} value
+         * @returns void
+         */
+        addOutcomeWithValue(name: string, value: number): void;
+    }
+
+    declare class User {
+        pushSubscription: PushSubscription_2;
+        private _userStateObserverList;
+        private _processFunctionList;
+        /**
+         * Explicitly set a 2-character language code for the user.
+         * @param  {string} language
+         * @returns void
+         */
+        setLanguage(language: string): void;
+        /**
+         * Aliases
+         */
+        /**
+         * Set an alias for the current user. If this alias label already exists on this user, it will be overwritten with the new alias id.
+         * @param  {string} label
+         * @param  {string} id
+         * @returns void
+         */
+        addAlias(label: string, id: string): void;
+        /**
+         * Set aliases for the current user. If any alias already exists, it will be overwritten to the new values.
+         * @param {object} aliases
+         * @returns void
+         */
+        addAliases(aliases: object): void;
+        /**
+         * Remove an alias from the current user.
+         * @param  {string} label
+         * @returns void
+         */
+        removeAlias(label: string): void;
+        /**
+         * Remove aliases from the current user.
+         * @param  {string[]} labels
+         * @returns void
+         */
+        removeAliases(labels: string[]): void;
+        /**
+         * Email
+         */
+        /**
+         * Add a new email subscription to the current user.
+         * @param  {string} email
+         * @returns void
+         */
+        addEmail(email: string): void;
+        /**
+         * Remove an email subscription from the current user. Returns false if the specified email does not exist on the user within the SDK, and no request will be made.
+         * @param {string} email
+         * @returns void
+         */
+        removeEmail(email: string): void;
+        /**
+         * SMS
+         */
+        /**
+         * Add a new SMS subscription to the current user.
+         * @param  {string} smsNumber
+         * @returns void
+         */
+        addSms(smsNumber: string): void;
+        /**
+         * Remove an SMS subscription from the current user. Returns false if the specified SMS number does not exist on the user within the SDK, and no request will be made.
+         * @param {string} smsNumber
+         * @returns void
+         */
+        removeSms(smsNumber: string): void;
+        /**
+         * Tags
+         */
+        /**
+         * Add a tag for the current user. Tags are key:value string pairs used as building blocks for targeting specific users and/or personalizing messages. If the tag key already exists, it will be replaced with the value provided here.
+         * @param  {string} key
+         * @param  {string} value
+         * @returns void
+         */
+        addTag(key: string, value: string): void;
+        /**
+         * Add multiple tags for the current user. Tags are key:value string pairs used as building blocks for targeting specific users and/or personalizing messages. If the tag key already exists, it will be replaced with the value provided here.
+         * @param  {object} tags
+         * @returns void
+         */
+        addTags(tags: object): void;
+        /**
+         * Remove the data tag with the provided key from the current user.
+         * @param  {string} key
+         * @returns void
+         */
+        removeTag(key: string): void;
+        /**
+         * Remove multiple tags with the provided keys from the current user.
+         * @param  {string[]} keys
+         * @returns void
+         */
+        removeTags(keys: string[]): void;
+        /** Returns the local tags for the current user.
+         * @returns Promise<{ [key: string]: string }>
+         */
+        getTags(): Promise<{
+            [key: string]: string;
+        }>;
+        /**
+         * Add a callback that fires when the OneSignal User state changes.
+         * Important: When using the observer to retrieve the onesignalId, check the externalId as well to confirm the values are associated with the expected user.
+         * @param  {(event: UserChangedState)=>void} listener
+         * @returns void
+         */
+        addEventListener(event: 'change', listener: (event: UserChangedState) => void): void;
+        /**
+         * Remove a User State observer that has been previously added.
+         * @param  {(event: UserChangedState)=>void} listener
+         * @returns void
+         */
+        removeEventListener(event: 'change', listener: (event: UserChangedState) => void): void;
+        /**
+         * Get the nullable OneSignal Id associated with the current user.
+         * @returns {Promise<string | null>}
+         */
+        getOnesignalId(): Promise<string | null>;
+        /**
+         * Get the nullable External Id associated with the current user.
+         * @returns {Promise<string | null>}
+         */
+        getExternalId(): Promise<string | null>;
+        /**
+         * Track a custom event with the provided name and optional properties.
+         * @param  {string} name - The name of the custom event
+         * @param  {object} [properties] - Optional properties to associate with the event
+         * @returns void
+         */
+        trackEvent(name: string, properties?: object): void;
+    }
+
+    export declare interface UserChangedState {
+        current: UserState;
+    }
+
+    export declare interface UserState {
+        onesignalId?: string;
+        externalId?: string;
+    }
+
+    export { }
